@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getAudioProvider } from "@/lib/audio-provider";
 
 interface GenerateSongRequest {
   story: string;
   style: "sad" | "savage" | "healing";
-}
-
-declare global {
-  var songs: Record<string, any>;
 }
 
 export async function POST(request: NextRequest) {
@@ -21,24 +19,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const songId = generateSongId();
-    
-    const songData = {
-      id: songId,
-      title: generateSongTitle(story, style),
-      story: story,
-      style: style,
-      previewUrl: "/audio/sample-preview.mp3",
-      fullUrl: `/audio/sample-full-${songId}.mp3`,
-      createdAt: new Date().toISOString(),
-    };
+    const audioProvider = getAudioProvider();
+    const { previewUrl, fullUrl } = await audioProvider.generateSong({ story, style });
 
-    global.songs = global.songs || {};
-    (global as any).songs[songId] = songData;
+    const song = await prisma.song.create({
+      data: {
+        title: generateSongTitle(story, style),
+        story,
+        style,
+        previewUrl,
+        fullUrl,
+        isPurchased: false,
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      songId: songId,
+      songId: song.id,
       message: "Song generated successfully",
     });
   } catch (error) {
@@ -48,10 +45,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-function generateSongId(): string {
-  return `song-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 function generateSongTitle(story: string, style: string): string {

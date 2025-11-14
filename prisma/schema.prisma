@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Song {
+  id                    String    @id @default(uuid())
+  title                 String
+  story                 String
+  style                 String
+  previewUrl            String
+  fullUrl               String
+  isPurchased           Boolean   @default(false)
+  purchaseTransactionId String?
+  userId                String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  expiresAt             DateTime?
+
+  @@index([userId])
+  @@index([isPurchased])
+}
+
+model Transaction {
+  id                String   @id
+  songId            String?
+  userId            String?
+  amount            String
+  currency          String
+  status            String
+  paddleData        String
+  createdAt         DateTime @default(now())
+
+  @@index([songId])
+  @@index([userId])
+}

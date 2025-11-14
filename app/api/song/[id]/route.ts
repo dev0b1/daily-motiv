@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
@@ -7,8 +8,9 @@ export async function GET(
   try {
     const songId = params.id;
     
-    global.songs = global.songs || {};
-    const song = (global as any).songs[songId];
+    const song = await prisma.song.findUnique({
+      where: { id: songId },
+    });
 
     if (!song) {
       return NextResponse.json(
@@ -19,7 +21,16 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      song: song,
+      song: {
+        id: song.id,
+        title: song.title,
+        story: song.story,
+        style: song.style,
+        previewUrl: song.previewUrl,
+        fullUrl: song.isPurchased ? song.fullUrl : song.previewUrl,
+        isPurchased: song.isPurchased,
+        createdAt: song.createdAt,
+      },
     });
   } catch (error) {
     console.error("Error fetching song:", error);
