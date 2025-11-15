@@ -1,0 +1,41 @@
+i am building breakup music, an app that turns breakup into music, please apply or add this to the ui design   Replit, please make my entire ExRoast.fm site look ultra-clean, premium, and TikTok-viral using ONLY these rules. Do not delete any functionality, just update colors, fonts, and vibes exactly as described:
+
+1. Background of the entire site → pure solid black (#000000). Remove every white/orange/light gradient overlay completely. No exceptions.
+
+2. All main headlines (big text like “Turn Your Breakup…”) → neon gradient text that goes from hot pink #ff006e on the left to gold #ffd23f on the right. Make it bold and glowing.
+
+3. All buttons (Roast My Ex, Generate, Pay buttons) → gradient background from hot pink #ff006e to deep orange-red #ff4500, with a thin gold border #ffd23f. Add a strong pink glow/shadow on hover.
+
+4. All cards (mode cards, pricing cards, how-it-works boxes) → very dark gray background #0f0f0f with subtle thin border #333333. On hover → border becomes hot pink #ff006e with pink glow.
+
+5. All regular text → pure white #ffffff, never gray.
+
+6. Emojis → keep only 🔥💅👑🗡️ (fire, nails, crown, dagger). Remove every heart and sad emoji everywhere.
+
+7. Social proof numbers (50,000+ Exes roasted, etc.) → make the numbers gold #ffd23f and slightly bigger.
+
+8. Pricing section → same dark card style. The $4.99 and $12.99/mo prices → make them bright gold #ffd23f and bigger.
+
+9. Add very subtle moving fire particles in the background (pink/orange/gold colors only, low opacity, slow moving, not distracting).
+
+10. Overall vibe → expensive underground rave / revenge party. Zero soft colors, zero pastels, zero dating-coach vibes.
+
+Apply all these changes perfectly while keeping every button and feature working exactly as before. Make it look dangerous and addictive.  Replit, please do ALL of this safely without breaking anything:
+
+1. Add this single line inside the <head> section (right after your other <script> or <link> tags):
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+
+2. Add this <div> right before the closing </body> tag:
+<div id="particles-js"></div>
+
+3. Then apply all the visual upgrades I asked for earlier:
+   - Pure black background #000000 everywhere (remove all white/orange gradients)
+   - Headlines → neon gradient hot pink #ff006e → gold #ffd23f
+   - Buttons → gradient #ff006e → #ff4500 with gold border
+   - Cards → dark #0f0f0f with pink hover glow
+   - Add the subtle neon fire particles (pink/orange/gold slow-moving sparks) using the tsParticles library you just added
+   - Keep all functionality 100% working
+
+Make the particles low-key and beautiful — exactly like the background on exroast.fm or petty.fm. Do not make them too fast or too many.
+
+Apply everything perfectly right now.  then after the ui update convert entire nextjs app to approuter instead of page router
