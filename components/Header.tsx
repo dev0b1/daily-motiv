@@ -22,7 +22,7 @@ export function Header() {
               <FaHeart className="text-2xl animate-heartbeat" />
             </motion.div>
             <span className="text-xl font-bold text-gradient">
-              Breakup Songs
+              HeartHeal
             </span>
           </Link>
           

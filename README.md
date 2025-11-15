@@ -1,13 +1,13 @@
-# 💔 Breakup Song Generator
+# 💔 HeartHeal
 
-A viral Next.js web application that generates personalized AI breakup songs with Paddle subscription billing, social sharing, and emotional healing features.
+Transform your heartbreak into healing songs. A Next.js web application that generates personalized AI songs with emotional healing features, multiple moods, and social sharing.
 
 ## Features
 
 - 🎵 **AI-Powered Song Generation**: Create unique breakup songs from your story
 - 💳 **Paddle Billing Integration**: Subscription tiers and single song purchases
 - 📱 **Social Sharing**: Share on TikTok, Instagram, WhatsApp, and Twitter
-- 🎨 **Three Emotional Styles**: Sad, Savage, or Healing vibes
+- 🎨 **Five Emotional Modes**: Sad, Savage, Healing, Vibe, or Meme
 - 🎧 **Audio Preview**: 10-second previews before purchase
 - 💎 **Premium Features**: AI breakup advice and no-contact guidance
 - 📱 **Mobile-First Design**: Responsive and beautiful on all devices

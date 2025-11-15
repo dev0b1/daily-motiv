@@ -1,13 +1,21 @@
-# Breakup Song Generator - Replit Project
+# HeartHeal - Replit Project
 
 ## Overview
-A viral Next.js web application for generating personalized AI breakup songs with Paddle subscription billing, social sharing features, and emotional healing support. Built with Next.js 16, Tailwind CSS, Framer Motion, and Paddle Billing.
+HeartHeal is a Next.js web application for generating personalized AI breakup songs with emotional healing support, multiple mood modes, and social sharing features. Built with Next.js 16, Tailwind CSS, Framer Motion, Suno AI, and OpenRouter. Rebranded from "Breakup Song Generator" to "HeartHeal" with a high-conversion landing page.
 
 ## Recent Changes (November 15, 2025)
 
-### Latest Updates - Suno AI Integration & Animated Lyrics
+### Latest Updates - Rebranding & Landing Page Redesign (November 15, 2025)
+- ✅ **Rebranded to HeartHeal** - Updated all branding from "Breakup Song Generator" to "HeartHeal"
+- ✅ **Redesigned landing page** - High-conversion design with emotional headlines, social proof, benefits-focused sections
+- ✅ **Added onboarding modal** - Interactive 3-step wizard: emotional check-in → story input → mode selection
+- ✅ **Updated AI model** - Changed from Claude 3.5 Sonnet to Mistral 7B Instruct (free tier)
+- ✅ **Changed AI role** - AI now cleans up OCR text and generates Suno prompts instead of full lyrics
+- ✅ **Added 5 emotional modes** - Sad, Savage, Healing, Vibe, and Meme (expanded from 3)
+
+### Previous Updates - Suno AI Integration & Animated Lyrics
 - ✅ **Integrated Suno AI** - Replaced ElevenLabs with Suno AI for professional music generation
-- ✅ **Added OpenRouter integration** - Using Claude 3.5 Sonnet for intelligent lyric generation from breakup stories
+- ✅ **Added OpenRouter integration** - Using Mistral 7B for OCR cleanup and prompt generation
 - ✅ **Created LyricsOverlay component** - Smooth scrolling lyrics synchronized with song playback
 - ✅ **Created AnimatedBackground component** - Floating hearts, musical notes, and gradient animations
 - ✅ **Enhanced Share page** - Two-column layout with lyrics overlay, animated background, and custom audio player

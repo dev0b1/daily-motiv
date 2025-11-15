@@ -32,27 +32,30 @@ export class OpenRouterAPI {
       meme: 'funny, quirky, humorous, playful, ironic',
     };
 
-    const systemPrompt = `You are a creative AI that converts breakup stories into song lyrics and metadata for AI music generation. 
+    const systemPrompt = `You are an AI assistant that helps clean up extracted text from images (OCR) and generates Suno AI prompts for song generation.
 
-Your task is to analyze the breakup story and create:
-1. A catchy song title (max 50 characters)
-2. Music genre/style tags (max 80 characters) - be specific with musical styles
-3. Full song lyrics (3-5 verses with chorus, around 200-400 words)
+Your task is to:
+1. Clean up any OCR errors or garbled text from the user's story
+2. Create a catchy song title (max 50 characters)
+3. Generate music genre/style tags (max 80 characters) - be specific with musical styles
+4. Create a descriptive prompt for Suno AI that captures the story's emotion and the requested style
 
-The lyrics should capture the emotional essence of the story and match the requested style: ${params.style} (${styleDescriptions[params.style as keyof typeof styleDescriptions] || 'emotional'})
+The prompt should describe the song's theme, emotion, and narrative arc - NOT full lyrics. Suno AI will generate the actual lyrics and music.
+
+Style requested: ${params.style} (${styleDescriptions[params.style as keyof typeof styleDescriptions] || 'emotional'})
 
 Return your response in this exact JSON format:
 {
   "title": "Song Title Here",
   "tags": "genre, style, mood, tempo",
-  "prompt": "Full lyrics here with verse/chorus structure"
+  "prompt": "A descriptive prompt for Suno AI about the song's theme, emotion, and narrative"
 }`;
 
     try {
       const response = await axios.post(
         `${this.baseUrl}/chat/completions`,
         {
-          model: 'anthropic/claude-3.5-sonnet',
+          model: 'mistralai/mistral-7b-instruct:free',
           messages: [
             {
               role: 'system',
@@ -60,7 +63,7 @@ Return your response in this exact JSON format:
             },
             {
               role: 'user',
-              content: `Create a ${params.style} breakup song based on this story:\n\n${params.extractedText}`,
+              content: `Clean up this text and create a Suno AI prompt for a ${params.style} breakup song:\n\n${params.extractedText}`,
             },
           ],
           response_format: { type: 'json_object' },
@@ -70,8 +73,8 @@ Return your response in this exact JSON format:
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://breakupsongs.app',
-            'X-Title': 'Breakup Song Generator',
+            'HTTP-Referer': 'https://heartheal.app',
+            'X-Title': 'HeartHeal',
           },
         }
       );

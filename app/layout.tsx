@@ -6,12 +6,12 @@ import { PaddleLoader } from "@/components/PaddleLoader";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "💔 Breakup Song Generator - Turn Your Heartbreak Into Music",
-  description: "Personalized AI breakup songs you can share, laugh, or cry to. Generate custom songs from your breakup story.",
-  keywords: ["breakup", "song generator", "AI music", "heartbreak", "emotional healing"],
+  title: "💔 HeartHeal - Turn Your Pain Into Songs That Heal",
+  description: "Instant AI songs that say what you wish you could — sad, savage, healing, or funny. Transform your heartbreak into music in seconds.",
+  keywords: ["breakup", "healing", "AI music", "heartbreak", "emotional healing", "sad songs", "savage songs"],
   openGraph: {
-    title: "💔 Breakup Song Generator",
-    description: "Turn your breakup into a personalized song",
+    title: "💔 HeartHeal - Heartbroken? Turn your pain into a song that heals",
+    description: "Instant AI songs tailored to your emotions",
     type: "website",
   },
 };

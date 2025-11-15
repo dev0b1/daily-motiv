@@ -11,10 +11,10 @@ export function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <FaHeart className="text-heartbreak-400 text-xl" />
-              <span className="text-lg font-bold">Breakup Songs</span>
+              <span className="text-lg font-bold">HeartHeal</span>
             </div>
             <p className="text-gray-400 text-sm">
-              Turn your heartbreak into personalized AI songs you can share, laugh, or cry to.
+              Transform your heartbreak into healing songs. Express what you feel with AI-powered music.
             </p>
           </div>
           
@@ -92,7 +92,7 @@ export function Footer() {
         </div>
         
         <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; 2025 Breakup Song Generator. All rights reserved. Made with 💔 and AI.</p>
+          <p>&copy; 2025 HeartHeal. All rights reserved. Made with 💔 and AI.</p>
         </div>
       </div>
     </footer>
