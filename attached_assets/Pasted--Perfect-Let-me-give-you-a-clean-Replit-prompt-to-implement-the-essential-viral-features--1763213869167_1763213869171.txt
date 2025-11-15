@@ -1,0 +1,76 @@
+**Perfect. Let me give you a clean Replit prompt to implement the essential viral features.**
+
+---
+
+## 🚀 **Replit Prompt for HeartHeal Viral Features**
+
+```
+I'm building HeartHeal - a breakup song generator web app. I need you to implement 
+the following features for quick launch:
+
+CURRENT SETUP:
+- Users can write their breakup story OR upload a chat screenshot
+- 5 modes: Sad, Savage, Healing, Vibe, Meme
+- ElevenLabs Music API generates songs from text prompts
+- Tech stack: [specify: React/Next.js/whatever you're using]
+
+FEATURES TO IMPLEMENT:
+
+1. ANALYSIS SCREEN (the  chat upload,should have this extra details in its analysis screen)
+   - Show loading animation with text: "Analyzing your conversation..."
+   - Display for 3-5 seconds:
+     ```
+     🚩 Red flag level: [High/Medium/Low]
+     💔 Heartbreak intensity: [X/10]
+     🎵 Recommended vibe: [Suggested mode]
+     
+     Generating your personalized breakup anthem...
+     ```
+   - Use simple sentiment analysis or just randomize for MVP
+   - Then proceed to song generation
+
+
+1. Take the generated lyrics
+2. Create canvas with:
+   - Static gradient background (pink/purple)
+   - Animated text showing lyrics line by line
+   - Song title at top
+   - "HeartHeal" watermark at bottom
+3. Sync lyrics to audio timestamps
+4. Export as MP4 (using ffmpeg or similar)
+   
+ 
+3. UX IMPROVEMENTS:
+   - Add character counter to story textarea: "0/500" that updates live
+   - After screenshot upload, show small preview thumbnail
+   - Add one-line examples under each mode icon:
+     * Sad: "Why wasn't I enough?"
+     * Savage: "Your loss, my glow-up"
+     * Healing: "I'm better without you"
+     * Vibe: "It is what it is"
+     * Meme: "Red flags? I collected them all"
+
+
+4. FIRST-TIME USER EXPERIENCE:
+   - First song is completely FREE (no watermark, no payment)
+   - After song plays, show modal:
+     "Love your song? Get unlimited songs for $9/month"
+     [Subscribe] [Maybe Later]
+   - Track in localStorage: hasGeneratedFirstSong = true
+
+
+SKIP FOR NOW (v2 features):
+- Don't implement actual chat screenshot analysis yet
+- Don't do side-by-side chat + lyrics display
+- Don't blur names in screenshots
+- No user accounts/login for first song generation which should be just 20 sec, full song + more song should require singup with google
+  we will implement the google auth with supabase + drizzle/orm but lets skip for now and implement other feautures
+
+Please provide clean, production-ready code with comments.
+Focus on making it work fast and look good on mobile.
+make sure it is mobile responsive please
+```
+
+---
+
+## .

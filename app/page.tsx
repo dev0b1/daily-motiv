@@ -27,6 +27,7 @@ export default function HomePage() {
       name: "Sad", 
       emoji: "😢", 
       description: "Let it all out. Songs that understand your pain.",
+      example: "Why wasn't I enough?",
       style: "sad",
       gradient: "from-blue-500 to-purple-500"
     },
@@ -34,6 +35,7 @@ export default function HomePage() {
       name: "Savage", 
       emoji: "🔥", 
       description: "Channel that anger. Empowering revenge anthems.",
+      example: "Your loss, my glow-up",
       style: "savage",
       gradient: "from-red-500 to-pink-500"
     },
@@ -41,6 +43,7 @@ export default function HomePage() {
       name: "Healing", 
       emoji: "🌱", 
       description: "Move forward. Hopeful songs about growth.",
+      example: "I'm better without you",
       style: "healing",
       gradient: "from-green-500 to-teal-500"
     },
@@ -48,6 +51,7 @@ export default function HomePage() {
       name: "Vibe", 
       emoji: "✨", 
       description: "Just vibing. Chill, atmospheric tracks.",
+      example: "It is what it is",
       style: "vibe",
       gradient: "from-purple-500 to-indigo-500"
     },
@@ -55,6 +59,7 @@ export default function HomePage() {
       name: "Meme", 
       emoji: "😂", 
       description: "Laugh it off. Funny, quirky healing songs.",
+      example: "Red flags? I collected them all",
       style: "meme",
       gradient: "from-yellow-500 to-orange-500"
     },
@@ -450,15 +455,25 @@ export default function HomePage() {
                     </motion.p>
                   </div>
 
-                  <motion.textarea
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    value={userStory}
-                    onChange={(e) => setUserStory(e.target.value)}
-                    placeholder="What happened? How do you feel? What do you wish you could say?"
-                    className="w-full h-40 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heartbreak-500 focus:border-transparent resize-none transition-all duration-300"
-                  />
+                  <div className="relative">
+                    <motion.textarea
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      value={userStory}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 500) {
+                          setUserStory(e.target.value);
+                        }
+                      }}
+                      maxLength={500}
+                      placeholder="What happened? How do you feel? What do you wish you could say?"
+                      className="w-full h-40 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heartbreak-500 focus:border-transparent resize-none transition-all duration-300"
+                    />
+                    <div className="absolute bottom-3 right-3 text-sm text-gray-500">
+                      {userStory.length}/500
+                    </div>
+                  </div>
 
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -558,7 +573,8 @@ export default function HomePage() {
                           </motion.span>
                           <div className="flex-1">
                             <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{mode.name}</h3>
-                            <p className="text-sm sm:text-base text-gray-600">{mode.description}</p>
+                            <p className="text-sm sm:text-base text-gray-600 mb-1">{mode.description}</p>
+                            <p className="text-xs sm:text-sm text-gray-500 italic">"{mode.example}"</p>
                           </div>
                           {selectedMode === mode.style && (
                             <motion.div

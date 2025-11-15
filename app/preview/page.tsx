@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SubscriptionCTA } from "@/components/SubscriptionCTA";
+import { SubscriptionModal } from "@/components/SubscriptionModal";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { LyricsOverlay } from "@/components/LyricsOverlay";
@@ -30,11 +31,13 @@ export default function PreviewPage() {
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSubscription, setShowSubscription] = useState(false);
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [actualDuration, setActualDuration] = useState(10);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const hasShownModalRef = useRef(false);
 
   useEffect(() => {
     if (songId) {
@@ -98,6 +101,26 @@ export default function PreviewPage() {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
+      
+      // Trigger first-time modal since preview was truncated
+      handleAudioEnded();
+    }
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+    
+    // Show subscription modal for first-time users after preview ends
+    // Only for unpurchased songs
+    if (!song.isPurchased && !hasShownModalRef.current && typeof window !== 'undefined') {
+      const hasGeneratedFirstSong = localStorage.getItem('hasGeneratedFirstSong');
+      if (!hasGeneratedFirstSong) {
+        setTimeout(() => {
+          setShowFirstTimeModal(true);
+          localStorage.setItem('hasGeneratedFirstSong', 'true');
+          hasShownModalRef.current = true;
+        }, 500);
+      }
     }
   };
 
@@ -184,7 +207,7 @@ export default function PreviewPage() {
                       src={song.isPurchased ? song.fullUrl : song.previewUrl}
                       onTimeUpdate={handleTimeUpdate}
                       onLoadedMetadata={handleLoadedMetadata}
-                      onEnded={() => setIsPlaying(false)}
+                      onEnded={handleAudioEnded}
                     />
 
                     <div className="flex items-center space-x-4">
@@ -298,6 +321,11 @@ export default function PreviewPage() {
       </main>
 
       <Footer />
+      
+      <SubscriptionModal 
+        isOpen={showFirstTimeModal} 
+        onClose={() => setShowFirstTimeModal(false)} 
+      />
     </div>
   );
 }
