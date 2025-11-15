@@ -17,19 +17,19 @@ export default function StoryPage() {
   const [inputMode, setInputMode] = useState<InputMode>('text');
   const [story, setStory] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [style, setStyle] = useState<SongStyle>("sad");
+  const [style, setStyle] = useState<SongStyle>("petty");
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState<LoadingStep>('ocr');
   const [loadingProgress, setLoadingProgress] = useState(0);
 
   const handleGenerate = async () => {
     if (inputMode === 'text' && story.trim().length < 10) {
-      alert("Please tell us a bit more about your breakup (at least 10 characters)");
+      alert("Spill more tea! We need at least 10 characters to roast properly 🔥");
       return;
     }
 
     if (inputMode === 'screenshot' && !screenshot) {
-      alert("Please upload a chat screenshot first");
+      alert("Upload that screenshot! We need the receipts 👀");
       return;
     }
 
@@ -95,14 +95,14 @@ export default function StoryPage() {
 
   if (isGenerating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-exroast-black px-4">
         <LoadingProgress currentStep={loadingStep} progress={loadingProgress} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-exroast-black">
       <Header />
       
       <main className="pt-32 pb-20">
@@ -114,109 +114,116 @@ export default function StoryPage() {
             className="space-y-8"
           >
             <div className="text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-                Tell Your <span className="text-gradient">Breakup Story</span>
+              <h1 className="text-5xl md:text-6xl font-black text-white">
+                Spill the Tea <span className="text-gradient">👀</span>
               </h1>
-              <p className="text-xl text-gray-600">
-                Write your story or upload a chat screenshot
+              <p className="text-2xl text-exroast-gold font-bold">
+                What did they do? We need ALL the details 🔥
               </p>
             </div>
 
             <div className="card space-y-6">
-              <div className="flex gap-4 border-b border-gray-200">
+              {/* Input Mode Selector */}
+              <div className="flex gap-4">
                 <button
                   onClick={() => setInputMode('text')}
-                  className={`
-                    flex items-center gap-2 px-6 py-3 font-semibold transition-all border-b-2
-                    ${inputMode === 'text'
-                      ? 'border-rose-500 text-rose-500'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }
-                  `}
+                  className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
+                    inputMode === 'text'
+                      ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
+                      : 'bg-exroast-black/50 text-gray-400 border-2 border-gray-700 hover:border-exroast-gold'
+                  }`}
                 >
-                  <FiEdit className="w-5 h-5" />
-                  Write Story
+                  <FiEdit className="inline mr-2" />
+                  Type It Out
                 </button>
                 <button
                   onClick={() => setInputMode('screenshot')}
-                  className={`
-                    flex items-center gap-2 px-6 py-3 font-semibold transition-all border-b-2
-                    ${inputMode === 'screenshot'
-                      ? 'border-rose-500 text-rose-500'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }
-                  `}
+                  className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
+                    inputMode === 'screenshot'
+                      ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
+                      : 'bg-exroast-black/50 text-gray-400 border-2 border-gray-700 hover:border-exroast-gold'
+                  }`}
                 >
-                  <FiImage className="w-5 h-5" />
+                  <FiImage className="inline mr-2" />
                   Upload Screenshot
                 </button>
               </div>
 
-              {inputMode === 'text' ? (
-                <div className="space-y-3">
-                  <label htmlFor="story" className="block text-lg font-semibold text-gray-700">
-                    Your Story
+              {/* Text Input */}
+              {inputMode === 'text' && (
+                <div className="space-y-2">
+                  <label className="block text-xl font-black text-exroast-gold">
+                    Spill the tea — what did they do? 👀
                   </label>
-                  <textarea
-                    id="story"
-                    rows={6}
-                    value={story}
-                    onChange={(e) => setStory(e.target.value)}
-                    placeholder="Example: They said they needed space, then I saw them with someone new the next day. After 3 years together, I deserved better than that..."
-                    className="input-field resize-none"
-                    maxLength={500}
-                  />
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>Be honest. The AI can handle it.</span>
-                    <span>{story.length}/500</span>
+                  <div className="relative">
+                    <textarea
+                      value={story}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 500) {
+                          setStory(e.target.value);
+                        }
+                      }}
+                      maxLength={500}
+                      placeholder="They ghosted me after 2 years... They cheated with my best friend... They said I was 'too much'... Give us EVERYTHING 🗡️"
+                      className="w-full h-48 input-field resize-none text-lg"
+                    />
+                    <div className="absolute bottom-4 right-4 text-sm text-gray-500 font-bold">
+                      {story.length}/500
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <label className="block text-lg font-semibold text-gray-700">
-                    Upload Chat Screenshot
-                  </label>
-                  <FileUpload
-                    onFileSelect={(file) => setScreenshot(file)}
-                    onClear={() => setScreenshot(null)}
-                  />
-                  <p className="text-sm text-gray-500">
-                    We'll extract the conversation using AI and create your song
+                  <p className="text-sm text-gray-400 italic">
+                    💡 The more specific, the more savage the roast
                   </p>
                 </div>
               )}
 
-              <StyleSelector selected={style} onChange={setStyle} />
+              {/* Screenshot Upload */}
+              {inputMode === 'screenshot' && (
+                <div className="space-y-2">
+                  <label className="block text-xl font-black text-exroast-gold">
+                    Drop those receipts 📸
+                  </label>
+                  <FileUpload
+                    onFileSelect={(file) => setScreenshot(file)}
+                    currentFile={screenshot}
+                  />
+                  <p className="text-sm text-gray-400 italic">
+                    💡 Upload a chat screenshot for max petty energy
+                  </p>
+                </div>
+              )}
 
+              {/* Style Selector */}
+              <div className="pt-4">
+                <StyleSelector
+                  selected={style}
+                  onChange={setStyle}
+                />
+              </div>
+
+              {/* Generate Button */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleGenerate}
-                disabled={inputMode === 'text' ? story.trim().length < 10 : !screenshot}
-                className="btn-primary w-full text-xl py-5 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={inputMode === 'text' && story.trim().length < 10}
+                className={`w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300 ${
+                  inputMode === 'text' && story.trim().length < 10
+                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-2xl shadow-exroast-pink/50 hover:shadow-3xl'
+                }`}
               >
-                Generate My Song 🎵
+                Generate My Roast 🔥💅
               </motion.button>
-            </div>
 
-            <div className="card bg-heartbreak-50 border-heartbreak-200">
-              <div className="flex items-start space-x-3">
-                <div className="text-2xl">💡</div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Pro Tips:</h3>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li>• Be specific about what hurt the most</li>
-                    <li>• Include details that made your relationship unique</li>
-                    <li>• Don't worry about grammar - raw emotion works best</li>
-                    <li>• The more honest you are, the better your song will be</li>
-                  </ul>
-                </div>
-              </div>
+              <p className="text-center text-sm text-gray-400">
+                Free 15-second preview • Full roast $4.99 • Takes 30 seconds
+              </p>
             </div>
           </motion.div>
         </div>
       </main>
-
+      
       <Footer />
     </div>
   );

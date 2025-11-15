@@ -1,101 +1,74 @@
-# HeartHeal - Replit Project
+# ExRoast.fm - Replit Project
 
 ## Overview
-HeartHeal is a Next.js web application for generating personalized AI breakup songs with emotional healing support, multiple mood modes, and social sharing features. Built with Next.js 16, Tailwind CSS, Framer Motion, Suno AI, and OpenRouter. Rebranded from "Breakup Song Generator" to "HeartHeal" with a high-conversion landing page.
+ExRoast.fm is a Next.js web application that turns breakup stories into savage, TikTok-viral AI roast songs. 100% petty, zero sadness. Built with Next.js 16, Tailwind CSS, Framer Motion, Suno AI, and OpenRouter.
 
 ## Recent Changes (November 15, 2025)
 
-### Latest Updates - Viral Features Implementation (November 15, 2025)
-- ✅ **Analysis Screen for Chat Uploads** - Shows red flag level (Low/Medium/High), heartbreak intensity (7-10), and recommended vibe after screenshot upload with 3-5 second loading animation
-- ✅ **Enhanced UX - Character Counter** - Live character counter (0/500) on story textarea with maxLength enforcement
-- ✅ **Enhanced UX - Mode Examples** - Added one-line examples under each mode:
-  - Sad: "Why wasn't I enough?"
-  - Savage: "Your loss, my glow-up"
-  - Healing: "I'm better without you"
-  - Vibe: "It is what it is"
-  - Meme: "Red flags? I collected them all"
-- ✅ **First-Time User Experience** - Free first song (20 sec preview) with subscription modal after playback
-- ✅ **Subscription Modal** - Appears once after first song preview ends, uses localStorage to track, shows benefits and $9/month pricing
-- ✅ **Mobile Responsive** - All new features optimized for mobile devices
+### Complete Rebrand to ExRoast.fm (November 15, 2025)
+- ✅ **Rebranded from HeartHeal to ExRoast.fm** - Complete transformation from healing to savage roast app
+- ✅ **New color scheme** - Almost black (#0f0f0f), hot pink (#ff006e), gold (#ffd23f)
+- ✅ **Updated all emojis** - Replaced hearts with 🔥💅🗡️👑
+- ✅ **Simplified modes** - Removed sad/heal/vibe/meme, kept only:
+  - Petty Roast (savage rap/trap)
+  - Glow-Up Flex (upbeat victory pop/EDM)
+- ✅ **Updated AI prompts** - New savage, TikTok-viral roast prompts with zero healing vibes
+- ✅ **Mobile-first bold design** - Club/revenge party aesthetic with bold fonts
+- ✅ **Updated tagline** - "Turn your breakup story into a savage 30-second roast song in seconds 🔥"
+- ✅ **Updated pricing display** - $4.99 one-time, $12.99/mo unlimited
+- ✅ **New placeholder text** - "Spill the tea — what did they do? 👀"
+- ✅ **Commented out Supabase auth** - Using Drizzle ORM setup (commented for dev)
 
-### Previous Updates - Rebranding & Landing Page Redesign (November 15, 2025)
-- ✅ **Rebranded to HeartHeal** - Updated all branding from "Breakup Song Generator" to "HeartHeal"
-- ✅ **Redesigned landing page** - High-conversion design with emotional headlines, social proof, benefits-focused sections
-- ✅ **Added onboarding modal** - Interactive 3-step wizard: emotional check-in → story input → mode selection
-- ✅ **Updated AI model** - Changed from Claude 3.5 Sonnet to Mistral 7B Instruct (free tier)
-- ✅ **Changed AI role** - AI now cleans up OCR text and generates Suno prompts instead of full lyrics
-- ✅ **Added 5 emotional modes** - Sad, Savage, Healing, Vibe, and Meme (expanded from 3)
+### Previous Updates - Viral Features Implementation
+- ✅ **Analysis Screen for Chat Uploads** - Shows red flag level, heartbreak intensity, recommended vibe
+- ✅ **Enhanced UX - Character Counter** - Live character counter (0/500) on story textarea
+- ✅ **First-Time User Experience** - Free first song (15-20 sec preview) with subscription modal
+- ✅ **Subscription Modal** - Appears after first song preview, shows benefits and pricing
+- ✅ **Mobile Responsive** - All features optimized for mobile devices
 
-### Previous Updates - Suno AI Integration & Animated Lyrics
-- ✅ **Integrated Suno AI** - Replaced ElevenLabs with Suno AI for professional music generation
-- ✅ **Added OpenRouter integration** - Using Mistral 7B for OCR cleanup and prompt generation
-- ✅ **Created LyricsOverlay component** - Smooth scrolling lyrics synchronized with song playback
-- ✅ **Created AnimatedBackground component** - Floating hearts, musical notes, and gradient animations
-- ✅ **Enhanced Share page** - Two-column layout with lyrics overlay, animated background, and custom audio player
-- ✅ **Enhanced Preview page** - Added lyrics display with animations and improved social sharing
-- ✅ **Implemented OCR workflow** - Screenshot → OCR → LLM → Suno AI complete pipeline
-
-### Previous Updates - Professional UI Redesign (November 14, 2025)
-- ✅ **Redesigned landing page** - Removed excessive pricing, focus on value and features
-- ✅ **Created dedicated pricing page** (`/pricing`) with comprehensive tier comparison
-- ✅ **Enhanced UI design** - Improved spacing, typography, card hover effects
-- ✅ **Improved Paddle integration** - Better error handling and environment validation
-- ✅ **Updated navigation** - Added "Get Started" button and pricing link in header
-- ✅ **Next.js optimization** - Added image optimization and compression settings
-
-### Initial Setup
-- ✅ Initialized Next.js 16 project with App Router and TypeScript
-- ✅ Configured Tailwind CSS with custom heartbreak color palette
-- ✅ Created all core components (Header, Footer, StyleSelector, SongPlayer, SubscriptionCTA, LoadingAnimation, SocialShareButtons)
-- ✅ Built landing page with animated broken heart and floating musical notes
-- ✅ Created story input page with textarea and style selection (Sad, Savage, Healing)
-- ✅ Built song preview page with audio player and subscription options
-- ✅ Integrated Paddle.js for subscription checkout
-- ✅ Added social share functionality for TikTok, Instagram, WhatsApp, Twitter
-- ✅ Created API routes for song generation and retrieval
-- ✅ Set up ElevenLabs Music API integration scaffolding
+### Previous Updates - Suno AI Integration
+- ✅ **Integrated Suno AI** - Professional music generation
+- ✅ **Added OpenRouter integration** - Using Mistral 7B for prompt generation
+- ✅ **Created LyricsOverlay component** - Smooth scrolling lyrics synchronized with playback
+- ✅ **Enhanced Share/Preview pages** - Animated backgrounds, custom audio player
 
 ## Project Architecture
 
 ### Frontend
 - **Next.js 16 App Router**: Modern React framework with server components
-- **Tailwind CSS**: Utility-first styling with custom heartbreak theme
-- **Framer Motion**: Smooth animations and transitions
+- **Tailwind CSS**: Dark theme with ExRoast.fm custom colors
+- **Framer Motion**: Bold animations and transitions
 - **React Icons**: Icon library for UI elements
 
 ### Pages
-1. `/` - Landing page with hero, features, how it works, FAQ (pricing removed for cleaner UX)
-2. `/pricing` - Dedicated pricing page with all subscription tiers and FAQs
-3. `/story` - Story input with text/screenshot options and style selection
-4. `/preview` - Song preview with animated lyrics overlay, custom player, and social sharing
-5. `/share/[id]` - Public song share page with full animations and lyrics
+1. `/` - Landing page with savage messaging, TikTok-viral positioning
+2. `/pricing` - Pricing page with $4.99 one-time and $12.99/mo unlimited
+3. `/story` - Story input with "Spill the tea" messaging and 2 mode selection
+4. `/preview` - Song preview with 15-second watermarked version, unlock options
+5. `/share/[id]` - Public song share page with TikTok share button
 6. `/success` - Payment confirmation page
 
 ### Components
-- `Header` - Navigation with logo and links
-- `Footer` - Links and social media
-- `StyleSelector` - Choose song vibe (Sad/Savage/Healing/Vibe/Meme)
-- `SongPlayer` - Audio playback with controls
-- `LyricsOverlay` - Animated scrolling lyrics synchronized to music
-- `AnimatedBackground` - Floating hearts, musical notes, gradient animations
-- `AnalysisScreen` - Chat screenshot analysis with red flags, heartbreak intensity, recommended vibe (NEW)
-- `SubscriptionModal` - First-time user subscription prompt after preview (NEW)
-- `SubscriptionCTA` - Pricing tiers and checkout
-- `LoadingAnimation` - Spinning musical notes animation
-- `LoadingProgress` - Progress indicator for song generation
-- `FileUpload` - Screenshot upload component with preview thumbnail
-- `SocialShareButtons` - Share to social platforms
-- `PaddleLoader` - Paddle.js SDK initialization
+- `Header` - Navigation with ExRoast.fm branding (🔥 logo, hot pink/gold)
+- `Footer` - Links and social media (TikTok-focused)
+- `StyleSelector` - Choose vibe (Petty Roast / Glow-Up Flex)
+- `SongPlayer` - Audio playback with gold waveform
+- `LyricsOverlay` - Animated scrolling lyrics
+- `AnimatedBackground` - Fire and revenge party animations
+- `SubscriptionModal` - Pricing and unlock prompt
+- `FileUpload` - Screenshot upload ("Drop those receipts")
+- `SocialShareButtons` - TikTok share with pre-filled caption
+- `LoadingProgress` - Progress indicator for roast generation
 
 ### API Routes
-- `/api/generate-song` - POST endpoint for song generation (OpenRouter + Suno AI)
+- `/api/generate-song` - POST endpoint for savage roast generation (OpenRouter + Suno AI)
 - `/api/song/[id]` - GET endpoint for song retrieval
-- `/api/ocr` - POST endpoint for text extraction from screenshots
+- `/api/ocr` - POST endpoint for chat screenshot text extraction
 - `/api/webhook` - Paddle webhook handler
 
 ### Libraries
-- `lib/suno.ts` - Suno AI client for music generation (NEW)
-- `lib/openrouter.ts` - OpenRouter client for LLM prompt generation (NEW)
+- `lib/suno.ts` - Suno AI client for music generation
+- `lib/openrouter.ts` - OpenRouter client with savage roast prompts
 - `lib/ocr.ts` - Tesseract.js OCR functionality
 - `lib/lyrics.ts` - Lyrics generation utilities
 - `lib/prisma.ts` - Prisma database client
@@ -103,10 +76,9 @@ HeartHeal is a Next.js web application for generating personalized AI breakup so
 ## Paddle Billing Integration
 
 ### Subscription Tiers
-- **Free**: $0 - 10-second previews, unlimited generations
-- **Standard**: $9/month - 5 full songs, HD audio, MP3 downloads
-- **Premium**: $19/month - 20 full songs, AI advice, no-contact tips, priority support
-- **Single Song**: $2.99 - One-time purchase (optional alternative to subscriptions)
+- **Free**: $0 - 15-second watermarked previews ("Full roast at ExRoast.fm")
+- **One-Time**: $4.99 - Full 30-second roast song
+- **Unlimited**: $12.99/month - Unlimited roasts, no watermark, priority generation
 
 ### Setup Instructions
 
@@ -115,43 +87,26 @@ HeartHeal is a Next.js web application for generating personalized AI breakup so
    - Complete account verification
 
 2. **Create Products in Paddle Dashboard**
-   - Create 3 subscription products (Standard, Premium, Single Song)
-   - Note the Price IDs for each product
+   - Create pricing products (One-Time $4.99, Monthly $12.99)
+   - Note the Price IDs
 
 3. **Configure Environment Variables**
-   Add these to your Replit Secrets:
    ```
    NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=your_client_token_here
    NEXT_PUBLIC_PADDLE_ENVIRONMENT=sandbox (or "production")
-   NEXT_PUBLIC_PADDLE_PRICE_STANDARD=pri_01xxxxx (your actual price ID)
-   NEXT_PUBLIC_PADDLE_PRICE_PREMIUM=pri_01xxxxx (your actual price ID)
-   NEXT_PUBLIC_PADDLE_PRICE_SINGLE=pri_01xxxxx (your actual price ID)
+   NEXT_PUBLIC_PADDLE_PRICE_ONETIME=pri_01xxxxx
+   NEXT_PUBLIC_PADDLE_PRICE_UNLIMITED=pri_01xxxxx
    PADDLE_API_KEY=your_api_key_here
    PADDLE_NOTIFICATION_WEBHOOK_SECRET=pdl_ntfset_xxxxx
    ```
 
 4. **Set up Webhook**
-   - In Paddle dashboard, go to Developer Tools > Webhooks
    - Add webhook URL: `https://your-replit-url.repl.co/api/webhook`
-   - Select events: `transaction.completed`, `subscription.created`, `subscription.updated`, `subscription.canceled`
-
-5. **Test in Sandbox Mode**
-   - Use Paddle's test card numbers
-   - Verify webhook events are received
-   - Test subscription flows
-
-### Error Handling
-The app includes comprehensive error handling for Paddle:
-- Validates environment variables before checkout
-- Provides user-friendly error messages
-- Logs errors to console for debugging
-- Prevents checkout with invalid price IDs
+   - Select events: `transaction.completed`, `subscription.created`, etc.
 
 ## AI Integration
 
 ### Suno AI Music Generation
-The app uses Suno AI (via third-party API providers) for professional music generation:
-
 **Required Environment Variables:**
 ```
 SUNO_API_KEY=your_api_key_here
@@ -160,38 +115,34 @@ SUNO_API_KEY=your_api_key_here
 **Integration Flow:**
 1. User provides breakup story (text or screenshot)
 2. OCR extracts text from screenshot (if applicable)
-3. OpenRouter/LLM generates song lyrics and metadata
-4. Suno AI generates the actual music
-5. Song is stored in database with preview and full URLs
-
-**Implementation:** See `lib/suno.ts` for the Suno API client
+3. OpenRouter generates savage roast prompt
+4. Suno AI generates 30-35 second roast song
+5. Free version: 15-second preview with watermark
+6. Paid: Full 30-second roast with ending: "Your ex just got roasted at ExRoast.fm — link in bio"
 
 ### OpenRouter LLM Integration
-The app uses OpenRouter to access Claude 3.5 Sonnet for intelligent prompt generation:
-
 **Required Environment Variables:**
 ```
 OPENROUTER_API_KEY=your_api_key_here
 ```
 
 **Purpose:**
-- Converts raw breakup stories into structured song lyrics
-- Generates song titles and genre/style tags
-- Optimizes prompts for Suno AI music generation
+- Creates brutal, hilarious, TikTok-viral roast prompts
+- Uses Mistral 7B Instruct (free tier)
+- Generates petty song titles and savage lyrics
+- 100% savage energy, zero sadness/healing
+- Specific to user's breakup story
 
-**Implementation:** See `lib/openrouter.ts` for the OpenRouter API client
-
-### Tesseract.js OCR
-Extracts text from chat screenshots using client-side OCR:
-- Implementation: `lib/ocr.ts`
-- API endpoint: `/api/ocr`
-- No API key required (runs in-browser)
+**Prompt Style:**
+- Petty Roast: Rap/trap, Cardi B/Eminem energy, brutal and funny
+- Glow-Up Flex: Upbeat pop/EDM, victory anthem, confident celebration
 
 ## User Preferences
 - Mobile-first responsive design
-- Smooth animations using Framer Motion
-- Heartbreak color palette (pale red, white, gray)
-- Rounded, friendly fonts
+- Bold, aggressive fonts (font-black everywhere)
+- Dark theme: black (#0f0f0f) background, hot pink/gold accents
+- Club/revenge party aesthetic
+- TikTok-viral positioning
 - No placeholder data - production-ready code
 
 ## Dependencies
@@ -202,9 +153,10 @@ Extracts text from chat screenshots using client-side OCR:
   "react": "^19.2.0",
   "tailwindcss": "^4.1.17",
   "framer-motion": "^12.23.24",
-  "react-icons": "^5.5.0",
-  "react-h5-audio-player": "^3.10.1",
-  "clsx": "^2.1.1"
+  "openai": "^6.9.0",
+  "drizzle-orm": "^0.44.7",
+  "drizzle-kit": "^0.31.7",
+  "@supabase/supabase-js": "^2.81.1"
 }
 ```
 
@@ -212,37 +164,38 @@ Extracts text from chat screenshots using client-side OCR:
 - Dev server runs on port 5000 (required for Replit webview)
 - All hosts allowed for iframe compatibility
 - TypeScript strict mode enabled
+- Supabase auth commented out for development (implement with Drizzle when ready)
 
 ## Complete Workflow
 
 ### Song Generation Flow
-1. **User Input**: User enters breakup story as text OR uploads chat screenshot
-2. **OCR Processing** (if screenshot): Tesseract.js extracts text from image
-3. **LLM Generation**: OpenRouter (Claude 3.5) converts story into:
-   - Song title
-   - Genre/style tags
-   - Full lyrics (200-400 words)
-4. **Music Generation**: Suno AI creates the actual song (30-60 seconds)
-5. **Preview Display**: User sees:
-   - Animated lyrics overlay
-   - Custom audio player
-   - Animated background with floating elements
-   - Social share buttons
-6. **Sharing**: Users can share song on TikTok, Instagram, WhatsApp, Twitter
+1. **User Input**: User types story OR uploads chat screenshot
+2. **OCR Processing** (if screenshot): Tesseract.js extracts text
+3. **LLM Generation**: OpenRouter creates savage roast prompt with:
+   - Petty song title
+   - Genre tags (rap/trap or pop/EDM)
+   - Brutal, funny roast prompt
+4. **Music Generation**: Suno AI creates 30-35 second roast song
+5. **Preview Display**: 
+   - Free: 15-second watermarked preview
+   - Paid: Full 30-second roast
+   - TikTok share button with caption: "POV: My ex hears this 😈 #ExRoast @exroastfm"
+6. **Sharing**: Auto-generate share image (black background, gold text "MY EX GOT ROASTED" + 🔥)
 
 ### Technical Features
-- **Mobile-first responsive design** with Tailwind CSS
-- **Smooth animations** using Framer Motion
-- **Lyrics scrolling** synchronized to song duration (60s default)
-- **CSS-only animations** for background (no video generation)
-- **Export functionality** (premium feature - locked)
-- **AI Breakup Advice** (premium feature - upsell in UI)
+- **Mobile-first bold design** with aggressive typography
+- **Dark theme** - almost black with neon pink/gold accents
+- **Fire animations** - club/revenge party aesthetic
+- **Watermarked previews** - "Full roast at ExRoast.fm" for free tier
+- **TikTok-viral positioning** - Pre-filled captions, share images
+- **Savage AI prompts** - 100% petty, zero healing vibes
 
 ## Next Steps
-1. ✅ Suno AI and OpenRouter integration complete
-2. Set up Paddle products and prices in dashboard
-3. Configure webhook endpoint for subscription events
-4. Test payment flow in sandbox mode
-5. Add user authentication for song history
-6. Implement download functionality for purchased songs
-7. Test complete OCR → LLM → Suno workflow with real API keys
+1. ✅ Complete ExRoast.fm transformation
+2. Test Suno AI integration with new roast prompts
+3. Set up Paddle products ($4.99 one-time, $12.99/mo)
+4. Configure webhook endpoint
+5. Test watermark on free previews
+6. Implement TikTok share image generation
+7. Add authentication with Drizzle ORM (currently commented out)
+8. Deploy and test complete roast workflow

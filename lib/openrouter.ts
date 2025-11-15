@@ -25,30 +25,34 @@ export class OpenRouterAPI {
     }
 
     const styleDescriptions = {
-      sad: 'sad, melancholic, heartbreak, emotional, slow tempo',
-      savage: 'empowering, confident, revenge, upbeat, sassy',
-      healing: 'hopeful, uplifting, growth, peaceful, moving on',
-      vibe: 'chill, smooth, atmospheric, laid-back',
-      meme: 'funny, quirky, humorous, playful, ironic',
+      petty: 'savage, brutal rap/trap, petty roast, TikTok-viral, Cardi B/Eminem energy, hilarious, zero sadness',
+      glowup: 'upbeat pop/EDM, victory anthem, confident, glow-up flex, empowering, celebration',
     };
 
-    const systemPrompt = `You are an AI assistant that helps clean up extracted text from images (OCR) and generates Suno AI prompts for song generation.
+    const systemPrompt = `You are an AI assistant that creates SAVAGE, TikTok-viral ex-roast song prompts for Suno AI.
 
 Your task is to:
-1. Clean up any OCR errors or garbled text from the user's story
-2. Create a catchy song title (max 50 characters)
-3. Generate music genre/style tags (max 80 characters) - be specific with musical styles
-4. Create a descriptive prompt for Suno AI that captures the story's emotion and the requested style
+1. Clean up any OCR errors from the user's breakup story
+2. Create a petty, hilarious song title (max 50 characters)
+3. Generate music genre/style tags for ${params.style} style (max 80 characters)
+4. Create a BRUTAL, FUNNY Suno AI prompt that roasts their ex with ZERO sadness
 
-The prompt should describe the song's theme, emotion, and narrative arc - NOT full lyrics. Suno AI will generate the actual lyrics and music.
+CRITICAL RULES:
+- 100% savage and funny. ZERO sadness or healing vibes.
+- Make it specific to their story - use exact details they shared
+- Style: ${params.style === 'petty' ? 'rap/trap with Cardi B/Eminem energy' : 'upbeat pop/EDM victory energy'}
+- Vocals: confident ${params.style === 'petty' ? 'female or male with attitude' : 'celebratory and upbeat'}
+- Length: 35 seconds max
+- End with spoken line: "Your ex just got roasted at ExRoast.fm — link in bio"
+- Make it laugh-out-loud funny and TikTok-viral worthy
 
-Style requested: ${params.style} (${styleDescriptions[params.style as keyof typeof styleDescriptions] || 'emotional'})
+Style requested: ${params.style} (${styleDescriptions[params.style as keyof typeof styleDescriptions] || 'savage'})
 
 Return your response in this exact JSON format:
 {
-  "title": "Song Title Here",
+  "title": "Petty Song Title Here",
   "tags": "genre, style, mood, tempo",
-  "prompt": "A descriptive prompt for Suno AI about the song's theme, emotion, and narrative"
+  "prompt": "Create a brutal, hilarious, TikTok-viral 35-second ex-roast song. [INSERT USER STORY DETAILS]. Make it petty, specific, and laugh-out-loud. End with: 'Your ex just got roasted at ExRoast.fm — link in bio'"
 }`;
 
     try {
@@ -63,18 +67,18 @@ Return your response in this exact JSON format:
             },
             {
               role: 'user',
-              content: `Clean up this text and create a Suno AI prompt for a ${params.style} HeartHeal song:\n\n${params.extractedText}`,
+              content: `Create a savage ExRoast.fm ${params.style} roast song from this breakup story:\n\n${params.extractedText}`,
             },
           ],
           response_format: { type: 'json_object' },
-          temperature: 0.8,
+          temperature: 0.9,
         },
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://heartheal.app',
-            'X-Title': 'HeartHeal',
+            'HTTP-Referer': 'https://exroast.fm',
+            'X-Title': 'ExRoast.fm',
           },
         }
       );
@@ -93,11 +97,11 @@ Return your response in this exact JSON format:
         throw new Error('AI returned invalid data structure');
       }
 
-      const defaultTags = styleDescriptions[params.style as keyof typeof styleDescriptions] || 'emotional';
+      const defaultTags = styleDescriptions[params.style as keyof typeof styleDescriptions] || 'savage';
       
       return {
         prompt: parsed.prompt || parsed.lyrics || parsed.lyric || '',
-        title: parsed.title || `${params.style.charAt(0).toUpperCase() + params.style.slice(1)} HeartHeal Anthem`,
+        title: parsed.title || `${params.style === 'petty' ? 'Petty' : 'Glow-Up'} Roast`,
         tags: parsed.tags || parsed.genre || defaultTags,
       };
     } catch (error: any) {
