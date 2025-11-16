@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, songs } from "@/src/db";
+import { db } from "@/server/db";
+import { songs } from "@/src/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(

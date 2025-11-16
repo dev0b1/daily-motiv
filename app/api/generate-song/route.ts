@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, songs } from '@/src/db';
+import { db } from '@/server/db';
+import { songs } from '@/src/db/schema';
 import { SongStyle } from '@/lib/lyrics';
 import { createOpenRouterClient } from '@/lib/openrouter';
 import { createSunoClient } from '@/lib/suno';
