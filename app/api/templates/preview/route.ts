@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadPreviewAudio } from '@/lib/file-storage';
 import { trimAudioToPreview } from '@/lib/audio-utils';
-import { unlink } from 'fs/promises';
+import { unlink, readFile } from 'fs/promises';
 import path from 'path';
 
 export async function POST(request: NextRequest) {
@@ -18,12 +18,18 @@ export async function POST(request: NextRequest) {
     const previewFilename = `preview_${templateId}_${Date.now()}.mp3`;
     const tempPreviewPath = path.join('/tmp', previewFilename);
 
-    const audioResponse = await fetch(templateUrl);
-    if (!audioResponse.ok) {
-      throw new Error('Failed to fetch template audio');
+    let audioBuffer: Buffer;
+    
+    if (templateUrl.startsWith('/')) {
+      const localPath = path.join(process.cwd(), 'public', templateUrl.replace(/^\//, ''));
+      audioBuffer = await readFile(localPath);
+    } else {
+      const audioResponse = await fetch(templateUrl);
+      if (!audioResponse.ok) {
+        throw new Error('Failed to fetch template audio');
+      }
+      audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
     }
-
-    const audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
     
     await trimAudioToPreview(audioBuffer, tempPreviewPath, 15, 0);
 
