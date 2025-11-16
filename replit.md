@@ -5,6 +5,19 @@ ExRoast.fm is a Next.js web application that turns breakup stories into savage, 
 
 ## Recent Changes (November 16, 2025)
 
+### Complete Prisma Removal & Pricing Polish (November 16, 2025)
+- ✅ **Removed Prisma Completely** - Deleted all Prisma files (prisma/, lib/prisma.ts, prisma.config.ts) and uninstalled @prisma/client
+- ✅ **Drizzle-Only Database** - All database operations now use Drizzle ORM exclusively with Supabase
+- ✅ **Pricing Page Polish** - Complete redesign with enhanced copy and visuals:
+  - **Tier Copy Updates**: Free "Instant Vibe-Matched Teasers" + "Watermarked Shares", One-Time "Unlock Your Custom Diss (One-Time Flex)", Unlimited + "Cancel Anytime" badge
+  - **Hero Bullets**: Moved "Cancel Anytime" and "Secure Paddle Payments" to prominent hero badges (replaced FAQ items)
+  - **Why Upgrade Section**: New side-by-side comparison table with "AI Reads Chats for Ultra-Petty Lines 💅" highlight
+  - **FAQ Updates**: Added "Safe Sharing: 100% Anonymous" as top FAQ item
+  - **Visual Enhancements**: Gold pulse animation on tier cards (2s infinite, 0.5s on hover), trust badges "Powered by Suno" + "Secure Paddle"
+  - **Mobile-Optimized**: Responsive table layout and card design
+
+## Recent Changes (November 16, 2025)
+
 ### Performance Optimization & Layout Fixes (November 16, 2025)
 - ✅ **Pink Vibes Enhancement** - Updated hero section for more pink energy:
   - "In Seconds 🔥" text now hot pink (#ff006e) with strong pink glow
