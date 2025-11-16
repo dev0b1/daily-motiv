@@ -169,7 +169,7 @@ export default function StoryPage() {
                     Spill the tea — what did they do? 🔥
                   </label>
                   <Tooltip content="Be specific for savage lyrics (e.g., 'Ghosted after tacos')">
-                    <div className="relative">
+                    <div className="relative" style={{ padding: '0 20px' }}>
                       <textarea
                         value={story}
                         onChange={(e) => {
@@ -179,10 +179,15 @@ export default function StoryPage() {
                         }}
                         maxLength={500}
                         placeholder="They ghosted me after 2 years... They cheated with my best friend... They said I was 'too much'... Give us EVERYTHING 🗡️"
-                        className="w-full h-48 input-field resize-none text-lg"
-                        style={{ fontSize: '16px' }}
+                        className="input-field resize-none"
+                        style={{ 
+                          width: '100%',
+                          minHeight: '120px',
+                          fontSize: '16px',
+                          opacity: 1.0
+                        }}
                       />
-                      <div className="absolute bottom-4 right-4 text-sm text-white font-bold">
+                      <div className="absolute bottom-4 right-6 text-base font-bold" style={{ color: '#ffd23f', opacity: 1.0 }}>
                         {story.length}/500
                       </div>
                     </div>
@@ -224,18 +229,28 @@ export default function StoryPage() {
               {/* Generate Button */}
               <Tooltip content="15s free preview—unlock full for $4.99">
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleGenerate}
                   disabled={inputMode === 'text' && story.trim().length < 10}
-                  className={`w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300 btn-pulse ${
+                  className={`w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300 ${
                     inputMode === 'text' && story.trim().length < 10
                       ? 'bg-gray-700 text-white cursor-not-allowed opacity-50'
-                      : 'bg-[#ff006e] text-white shadow-[0_0_15px_#ffd23f] hover:shadow-[0_0_25px_#ffd23f]'
+                      : 'btn-pulse'
                   }`}
-                  style={{ filter: inputMode === 'text' && story.trim().length < 10 ? 'none' : 'brightness(1.0) contrast(1.0)' }}
+                  style={
+                    inputMode === 'text' && story.trim().length < 10
+                      ? {}
+                      : {
+                          backgroundColor: '#ff006e',
+                          color: '#ffffff',
+                          border: '2px solid #ffd23f',
+                          boxShadow: '0 0 20px #ff006e',
+                          opacity: 1.0
+                        }
+                  }
                 >
-                  <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Generate My Roast 🔥💅</span>
+                  <span style={{ opacity: 1.0 }}>Generate My Roast 🔥💅</span>
                 </motion.button>
               </Tooltip>
 
