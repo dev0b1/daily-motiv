@@ -1,0 +1,15 @@
+Replit, transform ExRoast.fm into the ultimate viral beast with these final upgrades—NO breaking functionality, just pure pop:
+
+1. **Neon Spark Storm (Better Than Particles)**: Ditch tsParticles if glitchy. Add CSS-only animated sparks: 60 tiny dots (pink #ff006e, gold #ffd23f, orange #ff4500) floating upward like embers from a fire pit. Low opacity (0.5-0.8), slow speed (2-4s keyframes), full-screen fixed bg. On button hovers ("Generate My Roast"), make 10 extra sparks "explode" outward. Code it in pure CSS (@keyframes float + animation). Example: .spark { position: fixed; width: 4px; height: 4px; background: radial-gradient(circle, #ff006e, transparent); animation: float 6s infinite linear; } with staggered delays. Subtle, mobile-fast, no JS.
+
+2. **Hero Demo Video Embed**: Right under "Roast My Ex Now" button, add a 15s looping <video> player (muted auto-play, pink/gold controls). Use this free savage rap demo MP3 converted to MP4: src="https://pixabay.com/music/beats-indian-ethnic-brutal-evil-type-rap-beat-prod-by-onese-2024-188453/" (or placeholder black screen with fire text if needed). Overlay pulsing lyrics: "You ghosted? Here's your diss track 😈" in neon gold. Caption: "Sample Roast: Petty Ex Flex 🔥 (Click to unmute)". Mobile: Full-width, 300px height. Use Wavesurfer.js for waveform if possible.
+
+3. **Confetti Pop on Generate**: After "Generate My Roast" clicks and succeeds, trigger a 3s Lottie confetti animation (pink/gold fire emojis raining down). Free JSON from lottiefiles.com/search?q=fireworks (embed via <lottie-player> CDN: <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>). Non-intrusive, only on success.
+
+4. **Extra Pop Polish**:
+   - All buttons: Add micro-animation (scale 1.05 + pink pulse on hover, 0.2s ease).
+   - Hero headline: Subtle typewriter effect on load (letters "ignite" with gold glow).
+   - Social proof numbers: Animate counters from 0 to 50K/2.1M (JS countUp.js if easy, or CSS).
+   - Ensure demo video + sparks don't overlap (z-index: sparks -1, video 10).
+
+Test full flow: Load → See sparks dance → Hero video loops → Input → Generate (confetti bursts). Make it feel like a revenge party explosion. Deploy live now.
