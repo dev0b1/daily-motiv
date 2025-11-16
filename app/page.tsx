@@ -32,7 +32,7 @@ export default function HomePage() {
               <TypewriterText text="30-Second Roast Song" className="text-gold-hero inline-block" delay={1800} />
               <br />
               <motion.span 
-                className="text-gold-hero flex items-center justify-center gap-4 mt-4"
+                className="text-pink-hero flex items-center justify-center gap-4 mt-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 2.6 }}

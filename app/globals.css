@@ -25,20 +25,20 @@ body {
 
 .btn-primary {
   padding: 1rem 2.5rem;
-  background: #ffd23f;
+  background: #ff006e;
   color: white;
   font-weight: 900;
   font-size: 1.125rem;
   border-radius: 9999px;
-  border: 3px solid #ff006e;
-  box-shadow: 0 0 20px rgba(255, 210, 63, 0.5);
+  border: 3px solid #ffd23f;
+  box-shadow: 0 0 25px rgba(255, 0, 110, 0.7);
   transform-origin: center;
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background: #ffd23f;
-  box-shadow: 0 0 40px rgba(255, 0, 110, 0.8), 0 0 60px rgba(255, 0, 110, 0.5);
+  background: #ff006e;
+  box-shadow: 0 0 40px rgba(255, 0, 110, 0.9), 0 0 60px rgba(255, 0, 110, 0.7);
   transform: scale(1.05);
 }
 
@@ -158,6 +158,12 @@ body {
   color: #ffd23f;
   font-weight: 900;
   text-shadow: 0 0 8px rgba(255, 0, 110, 0.4);
+}
+
+.text-pink-hero {
+  color: #ff006e;
+  font-weight: 900;
+  text-shadow: 0 0 12px rgba(255, 0, 110, 0.8);
 }
 
 .glass-effect {
