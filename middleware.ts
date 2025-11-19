@@ -40,6 +40,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // If the user IS authenticated, don't allow them to view the public landing page.
+  // Redirect logged-in users who try to access `/` to the roast page `/story`.
+  if (user && request.nextUrl.pathname === '/') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/story';
+    return NextResponse.redirect(url);
+  }
+
   return supabaseResponse;
 }
 
