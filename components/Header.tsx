@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { usePathname, useRouter } from 'next/navigation';
 
 import Link from "next/link";
@@ -11,17 +11,24 @@ import { FaBars, FaTimes } from "react-icons/fa";
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any | null>(null);
+  const [confirmSignOutOpen, setConfirmSignOutOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const supabase = createClientComponentClient();
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
+    let mounted = true;
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+      if (mounted) setUser(session?.user || null);
     };
     checkUser();
+
+    // subscribe to auth changes so header stays in-sync across redirects/reloads
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setUser(session?.user || null);
+    });
 
     // show one-time toast after sign in
     try {
@@ -31,8 +38,13 @@ export function Header() {
         setTimeout(() => setShowToast(false), 4000);
       }
     } catch (e) {}
+
+    return () => {
+      mounted = false;
+      try { subscription?.unsubscribe?.(); } catch (e) {}
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, supabase]);
 
   return (
     <motion.header
@@ -78,13 +90,20 @@ export function Header() {
 
             {/* Auth area */}
             {user ? (
-              <div className="relative">
+              <div className="relative flex items-center gap-3">
                 <button
                   onClick={() => router.push('/account')}
                   className="flex items-center gap-3 bg-white/5 px-3 py-2 rounded-full"
                 >
                   <FaUserCircle className="text-xl text-white" />
                   <span className="text-sm text-white/90 truncate max-w-[120px]">{user.email}</span>
+                </button>
+                <button
+                  onClick={() => setConfirmSignOutOpen(true)}
+                  title="Sign out"
+                  className="ml-2 text-gray-300 hover:text-white"
+                >
+                  <FaSignOutAlt />
                 </button>
               </div>
             ) : (
@@ -143,6 +162,12 @@ export function Header() {
                     <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
                       <button className="w-full btn-primary">My Roasts</button>
                     </Link>
+                    <button
+                      onClick={() => setConfirmSignOutOpen(true)}
+                      className="w-full mt-2 bg-white text-black py-3 rounded-full font-bold"
+                    >
+                      Sign out
+                    </button>
                   </div>
                 ) : (
                   <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
@@ -159,6 +184,51 @@ export function Header() {
           Signed in successfully
         </div>
       )}
+      {/* Sign-out confirmation modal */}
+      <AnimatePresence>
+        {confirmSignOutOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-60 flex items-center justify-center bg-black/60"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="bg-gray-900 rounded-xl p-6 max-w-sm w-full mx-4"
+            >
+              <h3 className="text-xl font-bold text-white mb-2">Confirm sign out</h3>
+              <p className="text-gray-400 mb-4">Are you sure you want to sign out? You can sign back in anytime.</p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setConfirmSignOutOpen(false)}
+                  className="px-4 py-2 rounded-md bg-white/5 text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await supabase.auth.signOut();
+                      setUser(null);
+                      setConfirmSignOutOpen(false);
+                      router.push('/');
+                    } catch (e) {
+                      console.error('Sign out error', e);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-md bg-white text-black font-bold"
+                >
+                  Sign out
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
