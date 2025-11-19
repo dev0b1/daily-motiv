@@ -37,7 +37,8 @@ export default function CheckoutContent() {
         // Verify user is logged in
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          router.push("/login");
+          // redirect to consolidated auth page and return to checkout after login
+          router.push(`/auth?redirectTo=${encodeURIComponent('/checkout')}`);
           return;
         }
         setUserEmail(user.email || null);

@@ -38,7 +38,8 @@ export default function AuthCompleteClient() {
         }
 
         if (!user) {
-          router.push('/login');
+          // If we couldn't observe a session after the code exchange, send user to /auth
+          router.push(`/auth?redirectTo=${encodeURIComponent(returnToRaw)}`);
           return;
         }
 

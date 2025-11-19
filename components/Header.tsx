@@ -107,7 +107,7 @@ export function Header() {
                 </button>
               </div>
             ) : (
-              <Link href="/login">
+              <Link href="/auth">
                 <button className="bg-white text-black px-4 py-2 rounded-full font-bold">Sign in</button>
               </Link>
             )}
@@ -170,7 +170,7 @@ export function Header() {
                     </button>
                   </div>
                 ) : (
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
                     <button className="w-full bg-white text-black py-3 rounded-full font-bold">Sign in</button>
                   </Link>
                 )}

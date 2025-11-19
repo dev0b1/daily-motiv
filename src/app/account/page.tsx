@@ -15,8 +15,8 @@ export default function AccountPage() {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       if (!user) {
-        // redirect to login
-        window.location.href = '/login?redirectTo=/account';
+        // redirect to consolidated auth page
+        window.location.href = '/auth?redirectTo=/account';
         return;
       }
 

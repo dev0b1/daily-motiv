@@ -109,7 +109,7 @@ export function SubscriptionCTA({ songId, autoOpenSingle }: SubscriptionCTAProps
             await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
         } else {
           const redirect = opts?.songId ? `/checkout?songId=${opts.songId}` : `/checkout?type=single`;
-          router.push(`/login?redirectTo=${encodeURIComponent(redirect)}`);
+          router.push(`/auth?redirectTo=${encodeURIComponent(redirect)}`);
         }
         return;
       }

@@ -13,6 +13,7 @@ export default function LoginContent() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -33,17 +34,43 @@ export default function LoginContent() {
     try {
       const dest = redirectTo || '/story';
       const redirectToFull = `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?redirectTo=${encodeURIComponent(dest)}`;
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('[login] starting signInWithOAuth, redirectTo=', redirectToFull);
+      setDebugInfo({ step: 'starting', redirectToFull, origin: typeof window !== 'undefined' ? window.location.origin : null });
+      const res = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: redirectToFull,
-        },
+        options: { redirectTo: redirectToFull },
       });
 
+      // Newer Supabase clients may return { data: { url } } to perform a redirect.
+      // Older clients return { error } and perform a native redirect. Handle both.
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const { data, error } = res || {};
+
       if (error) {
-        setError(error.message);
+        console.error('[login] signInWithOAuth error', error);
+        setDebugInfo({ ...debugInfo, step: 'error', error });
+        setError(error.message || String(error));
         setIsLoading(false);
+        return;
       }
+
+      if (data && (data as any).url) {
+        // Save debug info and show link (in case popup/redirect is blocked on Vercel)
+        const providerUrl = (data as any).url;
+        setDebugInfo({ ...debugInfo, step: 'redirect-url', providerUrl, raw: data });
+        console.log('[login] received redirect URL from supabase:', providerUrl);
+        // Try to navigate browser to provider URL
+        window.location.href = providerUrl;
+        return;
+      }
+
+      // If no explicit redirect URL returned, Supabase should have redirected already.
+      // As a fallback, clear loading state after a short wait so the UI doesn't hang.
+      setTimeout(() => {
+        setIsLoading(false);
+        setDebugInfo({ ...debugInfo, step: 'no-redirect' });
+      }, 1500);
     } catch (err) {
       setError("Failed to sign in with Google");
       setIsLoading(false);
@@ -102,6 +129,20 @@ export default function LoginContent() {
             >
               {error}
             </motion.div>
+          )}
+
+          {/* Debug Info (developer) */}
+          {debugInfo && (
+            <div className="mt-4 p-3 bg-black/60 border border-white/10 text-sm text-gray-300 rounded">
+              <div className="font-bold mb-2">Debug</div>
+              <pre className="whitespace-pre-wrap break-words">{JSON.stringify(debugInfo, null, 2)}</pre>
+              {debugInfo?.providerUrl && (
+                <div className="mt-2 flex gap-2">
+                  <a className="text-exroast-gold underline" href={debugInfo.providerUrl} target="_blank" rel="noreferrer">Open provider URL</a>
+                  <button className="ml-auto text-sm text-gray-200 bg-white/5 px-3 py-1 rounded" onClick={() => { navigator.clipboard?.writeText(debugInfo.providerUrl); }}>Copy URL</button>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Divider */}
