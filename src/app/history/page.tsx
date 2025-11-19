@@ -30,7 +30,15 @@ export default function HistoryPage() {
     try {
       if (typeof window === 'undefined') return;
       
-      const recentRoasts = JSON.parse(localStorage.getItem('recentRoasts') || '[]');
+      let recentRoasts: any[] = [];
+      try {
+        const raw = localStorage.getItem('recentRoasts');
+        if (raw) recentRoasts = JSON.parse(raw);
+        if (!Array.isArray(recentRoasts)) recentRoasts = [];
+      } catch (err) {
+        console.warn('Invalid recentRoasts in localStorage, resetting it.', err, localStorage.getItem('recentRoasts'));
+        recentRoasts = [];
+      }
       
       if (recentRoasts.length === 0) {
         setLoading(false);

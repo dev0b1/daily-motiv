@@ -82,7 +82,16 @@ export default function StoryPage() {
         setShowConfetti(true);
         
         if (!isPro && typeof window !== 'undefined') {
-          const recentRoasts = JSON.parse(localStorage.getItem('recentRoasts') || '[]');
+          let recentRoasts = [] as any[];
+          try {
+            const raw = localStorage.getItem('recentRoasts');
+            if (raw) recentRoasts = JSON.parse(raw);
+            if (!Array.isArray(recentRoasts)) recentRoasts = [];
+          } catch (err) {
+            console.warn('Invalid recentRoasts in localStorage, resetting it.', err, localStorage.getItem('recentRoasts'));
+            recentRoasts = [];
+          }
+
           recentRoasts.unshift({
             id: data.songId,
             title: data.title,
