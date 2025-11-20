@@ -34,7 +34,7 @@ export default function HomePage() {
             {/* Two Big Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mt-16 max-w-5xl mx-auto">
               {/* Roast Your Ex Card */}
-              <Link href="/story">
+              <Link href="/app">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}

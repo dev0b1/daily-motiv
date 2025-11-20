@@ -66,7 +66,7 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
             </div>
 
             <button
-              onClick={() => router.push("/story")}
+              onClick={() => router.push("/app")}
               className="btn-primary w-full text-xl md:text-2xl py-6 md:py-8 flex items-center justify-center gap-4 bg-gradient-to-r from-exroast-pink to-red-600 hover:from-pink-500 hover:to-red-500 shadow-lg shadow-exroast-pink/50"
             >
               <span>Spill the Tea & Create Roast</span>

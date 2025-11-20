@@ -20,8 +20,13 @@ export async function openSingleCheckout(opts?: { songId?: string | null }) {
       // the code for a session cookie. After exchange the callback will
       // redirect back to the desired checkout path.
       try {
-        const dest = opts?.songId ? `/checkout?songId=${opts.songId}` : `/checkout?type=single`;
-        const redirectToFull = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(dest)}`;
+  const dest = opts?.songId ? `/checkout?songId=${opts.songId}` : `/checkout?type=single`;
+        const redirectToFull = `${window.location.origin}/auth/callback`;
+        try {
+          if (typeof document !== 'undefined') {
+            document.cookie = `post_auth_redirect=${encodeURIComponent(dest)}; path=/; max-age=600`;
+          }
+        } catch (e) {}
         await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectToFull } });
       } catch (e) {
         // fallback to simple flow if options unsupported
@@ -76,8 +81,13 @@ export async function openTierCheckout(tierId: string, priceId?: string) {
         // ignore localStorage errors
       }
       try {
-        const dest = `/checkout?tier=${tierId}`;
-        const redirectToFull = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(dest)}`;
+  const dest = `/checkout?tier=${tierId}`;
+        const redirectToFull = `${window.location.origin}/auth/callback`;
+        try {
+          if (typeof document !== 'undefined') {
+            document.cookie = `post_auth_redirect=${encodeURIComponent(dest)}; path=/; max-age=600`;
+          }
+        } catch (e) {}
         await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectToFull } });
       } catch (e) {
         await supabase.auth.signInWithOAuth({ provider: 'google' });

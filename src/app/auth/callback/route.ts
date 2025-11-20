@@ -5,11 +5,20 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
-  const redirectTo = searchParams.get('redirectTo') || '/app';
+  // prefer explicit query param, otherwise fall back to post_auth_redirect cookie saved by client
+  const cookieStore = await cookies();
+  const cookieRedirect = cookieStore.get('post_auth_redirect')?.value;
+  const redirectTo = searchParams.get('redirectTo') || (cookieRedirect ? decodeURIComponent(cookieRedirect) : undefined) || '/app';
 
   if (code) {
-    console.log('[auth/callback] received code, redirectTo=', redirectTo);
-    const cookieStore = await cookies();
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const allCookies = cookieStore.getAll();
+        console.log('[auth/callback] received code, redirectTo=', redirectTo, 'searchParams=', Object.fromEntries(searchParams.entries()), 'cookies=', allCookies.map(c=>({name:c.name,value:c.value})));
+      } catch (e) {
+        console.log('[auth/callback] debug log failed', e);
+      }
+    }
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,6 +44,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (!error) {
+      // clear the cookie so it doesn't linger
+      try {
+        cookieStore.set('post_auth_redirect', '', { path: '/', maxAge: 0 });
+      } catch (e) {}
       // Redirect to checkout if user came from subscribe button
       if (redirectTo === '/checkout') {
         return NextResponse.redirect(new URL('/checkout', request.url));

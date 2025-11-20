@@ -25,6 +25,7 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
   const [motivation, setMotivation] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [todayMotivation, setTodayMotivation] = useState<string>("");
+  const [expanded, setExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     if (hasCheckedInToday) {
@@ -88,36 +89,50 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
   };
 
   if (hasCheckedInToday && !motivation) {
+    // show a compact summary by default to avoid taking over the UI; allow
+    // the user to expand to view the full motivation text
     return (
       <div className="max-w-4xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="card border-4 border-exroast-gold bg-gradient-to-br from-purple-900/30 to-black space-y-8"
+          initial={{ opacity: 0, translateY: 8 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          className="card border-2 border-exroast-gold bg-gradient-to-br from-purple-900/20 to-black space-y-4 overflow-hidden"
         >
-          <div className="text-center space-y-6">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="text-8xl"
-            >
-              ✅
-            </motion.div>
-            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 to-exroast-gold bg-clip-text text-transparent">
-              You Already Checked In Today!
-            </h2>
-            <p className="text-xl md:text-2xl text-white font-bold">
-              Come back tomorrow to keep your streak going 🔥
-            </p>
-            {todayMotivation && (
-              <div className="bg-white/5 border-2 border-exroast-gold rounded-xl p-8 mt-6">
-                <p className="text-lg md:text-xl text-white leading-relaxed">
-                  {todayMotivation}
-                </p>
-              </div>
-            )}
+          <div className="flex items-start justify-between p-4 md:p-6">
+            <div className="flex-1 text-left">
+              <h3 className="text-lg md:text-xl font-black text-white">You Already Checked In Today ✅</h3>
+              <p className="text-sm text-gray-300 mt-1">Nice! Keep that streak alive — comeback tomorrow to continue.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-md text-sm"
+                aria-expanded={expanded}
+              >
+                {expanded ? 'Collapse' : 'View'}
+              </button>
+            </div>
           </div>
+
+          {expanded && (
+            <div className="p-4 md:p-6 border-t border-white/5 max-h-[60vh] overflow-auto">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-4"
+              >
+                {todayMotivation ? (
+                  <div className="bg-white/5 border-2 border-exroast-gold rounded-xl p-6">
+                    <p className="text-lg md:text-xl text-white leading-relaxed">
+                      {todayMotivation}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-400">No saved motivation yet.</p>
+                )}
+              </motion.div>
+            </div>
+          )}
         </motion.div>
       </div>
     );

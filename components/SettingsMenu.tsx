@@ -117,7 +117,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex sm:items-center items-start justify-center p-4 sm:p-6 md:p-8 overflow-auto"
+      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex sm:items-center items-start justify-center p-4 sm:p-6 md:p-8 overflow-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-menu-title"

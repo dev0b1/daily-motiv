@@ -104,8 +104,9 @@ export function SubscriptionCTA({ songId, autoOpenSingle }: SubscriptionCTAProps
       if (!user) {
         // If user isn't signed in, start Google OAuth and redirect to checkout after auth.
         const redirectPath = opts?.songId ? `/checkout?songId=${opts.songId}` : `/checkout?type=single`;
-          if (typeof window !== 'undefined') {
-            const redirectTo = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectPath)}`;
+            if (typeof window !== 'undefined') {
+            const redirectTo = `${window.location.origin}/auth/callback`;
+            try { document.cookie = `post_auth_redirect=${encodeURIComponent(redirectPath)}; path=/; max-age=600`; } catch (e) {}
             await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
         } else {
           const redirect = opts?.songId ? `/checkout?songId=${opts.songId}` : `/checkout?type=single`;

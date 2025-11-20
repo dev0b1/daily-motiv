@@ -9,7 +9,7 @@ import { FaGoogle, FaSpinner } from "react-icons/fa";
 export default function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/story";
+  const redirectTo = searchParams.get("redirectTo") || "/app";
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,11 +32,16 @@ export default function AuthContent() {
     setError(null);
 
     try {
-      const dest = redirectTo || '/story';
+  const dest = redirectTo || '/app';
   // Start the normal OAuth flow. Any intended purchase is stored in
   // localStorage by the checkout helper and will be resumed after sign-in.
   setDebugInfo({ step: 'starting' });
-  const redirectToFull = `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?redirectTo=${encodeURIComponent(dest)}`;
+  const redirectToFull = `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`;
+  try {
+    if (typeof document !== 'undefined') {
+      document.cookie = `post_auth_redirect=${encodeURIComponent(dest)}; path=/; max-age=600`;
+    }
+  } catch (e) {}
   const res = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectToFull } });
 
       // Newer Supabase clients may return { data: { url } } to perform a redirect.
@@ -141,7 +146,7 @@ export default function AuthContent() {
 
           {/* Guest Continue Button */}
           <motion.button
-            onClick={() => router.push("/story")}
+            onClick={() => router.push("/app")}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full bg-exroast-pink/20 hover:bg-exroast-pink/30 border-2 border-exroast-pink text-white py-4 px-6 rounded-xl font-black text-lg transition-all duration-300"

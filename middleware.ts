@@ -31,30 +31,28 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Protected routes that require authentication
+  const protectedPaths = ['/checkout', '/dashboard', '/app', '/account'];
+  const isProtectedPath = protectedPaths.some(path => 
+    request.nextUrl.pathname.startsWith(path)
+  );
+
   // Redirect to login if not authenticated and trying to access protected routes
-  if (!user && (
-    request.nextUrl.pathname.startsWith('/checkout') ||
-    request.nextUrl.pathname.startsWith('/dashboard') ||
-    request.nextUrl.pathname.startsWith('/app') ||
-    request.nextUrl.pathname.startsWith('/account')
-  )) {
+  if (!user && isProtectedPath) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth';
     url.searchParams.set('redirectTo', request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
-  // If the user IS authenticated, don't allow them to view the public landing page.
-  // Redirect logged-in users who try to access `/` to the app home `/app`.
+  // If the user IS authenticated, redirect them from public pages to /app
   if (user) {
-    // Redirect logged-in users away from public pages to /app
     const publicPaths = ['/', '/pricing', '/template'];
     if (publicPaths.includes(request.nextUrl.pathname)) {
       const url = request.nextUrl.clone();
       url.pathname = '/app';
       return NextResponse.redirect(url);
     }
-    // Allow /auth and /login for logout purposes
   }
 
   return supabaseResponse;

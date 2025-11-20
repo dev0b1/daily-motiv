@@ -175,10 +175,10 @@ export function Header({ userProp }: { userProp?: any }) {
   }, [user]);
 
   // If the user becomes authenticated on the client and is on the public
-  // landing page (`/`), send them to the main logged-in page (`/story`).
+  // landing page (`/`), send them to the main logged-in page (`/app`).
   useEffect(() => {
     if (user && pathname === '/') {
-      router.push('/story');
+      router.push('/app');
     }
   }, [user, pathname, router]);
 
@@ -223,7 +223,7 @@ export function Header({ userProp }: { userProp?: any }) {
               </>
             )}
 
-            {!user && pathname !== '/story' && (
+            {!user && pathname !== '/app' && (
               <Link href={"/template"}>
                 <button className="bg-[#ff4500] hover:bg-[#ff4500]/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-[#ffd23f] shadow-lg hover:shadow-[#ff006e]/70 hover:shadow-2xl">
                   <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Roast My Ex 🔥</span>
@@ -313,7 +313,7 @@ export function Header({ userProp }: { userProp?: any }) {
               >
                 FAQ
               </Link>
-              {!user && pathname !== '/story' && (
+              {!user && pathname !== '/app' && (
                 <Link href="/template" onClick={() => setMobileMenuOpen(false)}>
                   <button className="w-full bg-[#ff4500] hover:bg-[#ff4500]/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-[#ffd23f] shadow-lg hover:shadow-[#ff006e]/70 hover:shadow-2xl">
                     <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Roast My Ex 🔥</span>

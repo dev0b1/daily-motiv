@@ -9,7 +9,7 @@ import { FaGoogle, FaSpinner } from "react-icons/fa";
 export default function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/story";
+  const redirectTo = searchParams.get("redirectTo") || "/app";
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +32,14 @@ export default function LoginContent() {
     setError(null);
 
     try {
-      const dest = redirectTo || '/story';
-      const redirectToFull = `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?redirectTo=${encodeURIComponent(dest)}`;
+  const dest = redirectTo || '/app';
+      const redirectToFull = `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`;
+      // persist desired post-login redirect in a short-lived cookie so server callback can read it
+      try {
+        if (typeof document !== 'undefined') {
+          document.cookie = `post_auth_redirect=${encodeURIComponent(dest)}; path=/; max-age=600`;
+        }
+      } catch (e) {}
       console.log('[login] starting signInWithOAuth, redirectTo=', redirectToFull);
       setDebugInfo({ step: 'starting', redirectToFull, origin: typeof window !== 'undefined' ? window.location.origin : null });
       const res = await supabase.auth.signInWithOAuth({
@@ -157,7 +163,7 @@ export default function LoginContent() {
 
           {/* Guest Continue Button */}
           <motion.button
-            onClick={() => router.push("/story")}
+            onClick={() => router.push("/app")}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full bg-exroast-pink/20 hover:bg-exroast-pink/30 border-2 border-exroast-pink text-white py-4 px-6 rounded-xl font-black text-lg transition-all duration-300"

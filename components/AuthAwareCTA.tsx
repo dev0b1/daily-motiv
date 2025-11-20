@@ -20,7 +20,7 @@ export default function AuthAwareCTA({ children, className, ...rest }: Props) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        router.push('/story');
+        router.push('/app');
       } else {
         router.push('/template');
       }
