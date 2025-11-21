@@ -424,6 +424,38 @@ export async function getUserStreak(userId: string): Promise<{
   }
 }
 
+/**
+ * Ensure a minimal user row exists for the provided userId.
+ * This helps with legacy/anonymous flows where an auth user id exists
+ * but the `users` table row hasn't been created yet. We insert a
+ * synthetic email to satisfy the `NOT NULL` constraint.
+ */
+export async function ensureUserRow(userId: string): Promise<boolean> {
+  try {
+    const existing = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (existing && existing.length > 0) return true;
+
+    const syntheticEmail = `${userId}@no-email.exroast`;
+
+    await db.insert(users).values({
+      id: userId,
+      email: syntheticEmail,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error ensuring user row exists:', error);
+    return false;
+  }
+}
+
 export async function saveDailyCheckIn(checkIn: {
   userId: string;
   mood: string;
@@ -455,6 +487,14 @@ export async function saveDailyCheckIn(checkIn: {
       motivationText: checkIn.motivationText,
       motivationAudioUrl: checkIn.motivationAudioUrl
     });
+    // Ensure a users row exists so updateUserStreak can operate correctly.
+    // Some auth flows may not have created the `users` table row (anonymous or legacy sign-ups).
+    try {
+      await ensureUserRow(checkIn.userId);
+    } catch (e) {
+      // best-effort: log and continue to attempt to update streak
+      console.warn('ensureUserRow failed, continuing to update streak:', e);
+    }
 
     await updateUserStreak(checkIn.userId);
     return true;

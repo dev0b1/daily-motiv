@@ -52,28 +52,28 @@ export function StyleSelector({ selected, onChange }: StyleSelectorProps) {
               whileHover={{ scale: 1.05, y: -5 }}
               whileTap={{ scale: 0.95 }}
               className={clsx(
-                    // smaller on mobile, keep original larger padding on md+
-                    "p-2 md:p-8 rounded-2xl border-4 transition-all duration-300 text-left",
-                  isSelected
-                    ? `${style.bgColor} ${style.borderColor} shadow-2xl shadow-${style.id === 'petty' ? 'exroast-pink' : 'exroast-gold'}/50`
-                    : "bg-exroast-black/50 border-gray-700 hover:border-gray-600 shadow-xl"
-                )}
+                  // make each card wider on mobile (height ~60% of width) so descriptions fit; reduce padding so card stretches
+                  "w-full aspect-[5/3] md:aspect-auto p-0 md:p-8 rounded-2xl border-4 transition-all duration-300",
+                isSelected
+                  ? `${style.bgColor} ${style.borderColor} shadow-2xl shadow-${style.id === 'petty' ? 'exroast-pink' : 'exroast-gold'}/50`
+                  : "bg-exroast-black/50 border-gray-700 hover:border-gray-600 shadow-xl",
+              )}
             >
-              <div className="flex flex-col items-center space-y-4">
+              <div className="flex flex-col items-start justify-center h-full space-y-2 text-left px-3">
                 <div
                   className={clsx(
-                      "p-4 md:p-6 rounded-full bg-gradient-to-br",
+                      "p-2 md:p-6 rounded-full bg-gradient-to-br",
                     style.color
                   )}
                 >
-                      <Icon className="text-2xl md:text-5xl text-white" />
+                    <Icon className="text-2xl md:text-5xl text-white" />
                 </div>
-                <div className="text-center">
-                    <h3 className="font-black text-xl md:text-2xl text-white mb-2">
+                <div className="w-full md:mt-2">
+                    <h3 className="font-black text-sm md:text-2xl text-white mb-1">
                     {style.name}
                   </h3>
-                    <p className="text-sm md:text-base text-gray-300 mb-2">{style.description}</p>
-                    <p className="text-xs md:text-sm italic text-gray-400">"{style.example}"</p>
+                    <p className="block text-xs md:text-base text-gray-300 mb-1 truncate">{style.description}</p>
+                    <p className="block text-[10px] md:text-sm italic text-gray-400 truncate">"{style.example}"</p>
                 </div>
               </div>
             </motion.button>

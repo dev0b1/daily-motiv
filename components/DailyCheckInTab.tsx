@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { FaSpinner, FaMusic, FaFire } from "react-icons/fa";
 import { ConfettiPop } from "@/components/ConfettiPop";
 import { DailyQuoteOptInModal } from "@/components/DailyQuoteOptInModal";
+import { UpsellModal } from "@/components/UpsellModal";
 
 const MOOD_OPTIONS = [
   { id: "hurting", label: "Still hurting", emoji: "💔", color: "from-red-500 to-pink-500" },
@@ -29,6 +30,10 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
   const [expanded, setExpanded] = useState<boolean>(false);
   const [showOptInModal, setShowOptInModal] = useState(false);
   const [isPro, setIsPro] = useState(false);
+  const [demoAudioSrc, setDemoAudioSrc] = useState<string | null>(null);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const audioRef = typeof window !== 'undefined' ? (null as HTMLAudioElement | null) : null;
+  let previewTimer: ReturnType<typeof setTimeout> | null = null;
 
   useEffect(() => {
     if (hasCheckedInToday) {
@@ -63,6 +68,10 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
         if (data.checkIn?.motivationText) {
           setTodayMotivation(data.checkIn.motivationText);
         }
+        // if today has an audio nudge saved, surface it in the UI
+        if (data.checkIn?.motivationAudioUrl) {
+          setDemoAudioSrc(data.checkIn.motivationAudioUrl);
+        }
       }
     } catch (error) {
       console.error("Error fetching today's motivation:", error);
@@ -81,13 +90,29 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
         body: JSON.stringify({
           userId,
           mood: selectedMood,
-          message: message.trim()
+          message: message.trim(),
+          preferAudio: true
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         setMotivation(data.motivation);
+        // prefer server-generated audio when available, otherwise fall back to local demo file
+        const serverAudio: string | null = data.motivationAudioUrl || null;
+        if (serverAudio) {
+          setDemoAudioSrc(serverAudio);
+        } else {
+          // pick demo nudge based on selected mood; file names live in public/demo-nudges/
+          // filenames: hurting.mp3, confidence.mp3, angry.mp3, feeling-unstoppable.mp3
+          const moodToFile = (m: string) => {
+            if (!m) return 'hurting';
+            if (m === 'unstoppable') return 'feeling-unstoppable';
+            return m; // 'hurting', 'confidence', 'angry'
+          };
+          const fileName = moodToFile(selectedMood || data.mood || 'hurting');
+          setDemoAudioSrc(`/demo-nudges/${fileName}.mp3`);
+        }
         setShowConfetti(true);
         if (data.streak !== undefined) {
           onStreakUpdate(data.streak);
@@ -178,10 +203,16 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
                 className="space-y-4"
               >
                 {todayMotivation ? (
-                  <div className="bg-white/5 border-2 border-exroast-gold rounded-lg p-4 md:p-6">
+                  <div className="bg-white/5 border-2 border-exroast-gold rounded-lg p-4 md:p-6 space-y-4">
                     <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed">
                       {todayMotivation}
                     </p>
+                    {demoAudioSrc && (
+                      <div>
+                        <audio controls src={demoAudioSrc} className="w-full mt-2" />
+                        <div className="text-xs text-gray-300 mt-2">Your saved audio nudge — full playback available.</div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-gray-400 text-center py-4">No saved motivation yet.</p>
@@ -230,6 +261,52 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
             </p>
           </motion.div>
 
+          {/* Demo nudge + petty powerups */}
+          {demoAudioSrc && (
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+              <div className="flex-1 w-full">
+                <div className="bg-black/50 border border-white/10 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <audio
+                      ref={(el) => {
+                        if (el) {
+                          // attach play listener to cut at 15s
+                          el.onplay = () => {
+                            // clear any existing timer
+                            if (previewTimer) clearTimeout(previewTimer as any);
+                            previewTimer = setTimeout(() => {
+                              try {
+                                el.pause();
+                                // show upsell once the 15s demo has played
+                                setShowUpsellModal(true);
+                              } catch (e) {
+                                // ignore
+                              }
+                            }, 15000);
+                          };
+                          el.onpause = () => {
+                            if (previewTimer) {
+                              clearTimeout(previewTimer as any);
+                              previewTimer = null;
+                            }
+                          };
+                        }
+                      }}
+                      controls
+                      src={demoAudioSrc}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="text-xs text-gray-300 mt-2">15s demo nudge — play to preview. Upgrade to Pro to unlock full personalized audio nudges.</div>
+                </div>
+              </div>
+
+              <div className="w-full md:w-72">
+                <OptInBanner />
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3 md:space-y-4">
             <motion.button
               initial={{ opacity: 0, y: 20 }}
@@ -262,6 +339,15 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
             </motion.button>
           </div>
         </motion.div>
+
+        <UpsellModal
+          isOpen={showUpsellModal}
+          onClose={() => setShowUpsellModal(false)}
+          onUpgrade={(tier) => {
+            // navigate to checkout with desired tier
+            window.location.href = `/checkout?tier=${tier === 'one-time' ? 'single' : 'premium'}`;
+          }}
+        />
 
         <DailyQuoteOptInModal 
           isOpen={showOptInModal} 

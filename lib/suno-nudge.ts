@@ -101,6 +101,55 @@ export class SunoNudgeAPI {
     }
   }
 
+  /**
+   * Generate a mood-aware daily audio nudge.
+   * This builds a prompt focused on spoken motivation (no singing) and selects background music style based on mood.
+   */
+  async generateDailyNudge(params: { userStory: string; mood: string; motivationText?: string; dayNumber?: number; userName?: string; }): Promise<NudgeGenerationResult> {
+    if (!this.apiKey || this.apiKey === '') {
+      throw new Error('Suno API key not configured');
+    }
+
+    const motivationText = params.motivationText || this.getPersonalizedMotivation({ dayNumber: params.dayNumber || 1, userStory: params.userStory });
+    const prompt = this.buildDailyPrompt(params.mood, params.userStory, motivationText);
+
+    try {
+      console.log(`Generating daily audio nudge (mood=${params.mood})...`);
+      const createResponse = await axios.post(
+        `${this.baseUrl}/create`,
+        {
+          custom_mode: true,
+          title: `Daily Nudge - ${params.mood}`,
+          tags: 'voiceover, motivational, short-nudge',
+          prompt: prompt,
+          make_instrumental: false,
+          mv: 'chirp-v4'
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const taskId = createResponse.data.data?.id || createResponse.data.id;
+      if (!taskId) throw new Error('No task ID returned from Suno API');
+
+      const result = await this.pollForCompletion(taskId);
+
+      return {
+        id: result.id,
+        audioUrl: result.audioUrl,
+        motivationText,
+        duration: result.duration || 15,
+      };
+    } catch (error: any) {
+      console.error('Suno Daily Nudge Error:', error.response?.data || error.message);
+      throw error;
+    }
+  }
+
   private getPersonalizedMotivation(params: NudgeGenerationParams): string {
     const templates = savageMotivationTemplates;
     const index = (params.dayNumber - 1) % templates.length;
@@ -127,6 +176,20 @@ Narrator says (with attitude and confidence): "${motivationText}"
 Style: Sassy, empowering, petty energy. Think TikTok motivational audio meets savage breakup coach. Upbeat trap beats with crisp hi-hats and bass. Vocal delivery: confident, slightly sarcastic, hyping up the listener to flex on their ex.
 
 Duration: 15-20 seconds max. End cleanly with beat fadeout.`;
+  }
+
+  private buildDailyPrompt(mood: string, userStory: string, motivationText: string): string {
+    const storySnippet = userStory.substring(0, 150);
+    const moodMusicMap: Record<string, string> = {
+      hurting: 'warm lo-fi ambient with gentle pads (comforting, intimate)',
+      confidence: 'bright pop/indie acoustic with uplifting rhythm (optimistic)',
+      angry: 'hard trap/hip-hop beat with punchy drums (urgent, cathartic)',
+      unstoppable: 'big synth/anthemic electronic with driving bass (triumphant)'
+    };
+
+    const bgStyle = moodMusicMap[mood] || 'upbeat lo-fi with confident energy';
+
+    return `Create a 15-20 second spoken motivational voiceover (NO SINGING) for a breakup check-in. Use a confident, slightly sarcastic but kind narrator. Background sound: ${bgStyle}. Context: user's short story snippet: "${storySnippet}". Narrator should say a short, punchy, empowering line built from this context and the following motivation: "${motivationText}". Keep it natural, human, and energetic; end with a short beat-based flourish. Duration: 15-20 seconds.`;
   }
 
   private async pollForCompletion(taskId: string, maxAttempts = 60): Promise<{
