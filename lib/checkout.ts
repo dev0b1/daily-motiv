@@ -129,10 +129,11 @@ export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
     return;
   }
 
-  // Initialize paddle via helper (ensures script loaded and token initialized)
+  // Initialize paddle via helper (ensures package loaded and token initialized)
+  let paddle: any;
   try {
-    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!
-    await initializePaddle({ environment: process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox', token: clientToken, eventCallback: (ev) => {
+    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!;
+    paddle = await initializePaddle({ environment: process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox', token: clientToken, eventCallback: (ev) => {
       console.log('[Paddle Event]', ev?.name, ev);
       if (ev?.name === 'checkout.closed' || ev?.name === 'checkout.completed') {
         safeLocalStorage.removeItem('inCheckout');
@@ -173,7 +174,6 @@ export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
 
   try {
     console.log('[openSingleCheckout] Calling Paddle.Checkout.open()...');
-    const paddle = (window as any).Paddle;
     paddle.Checkout.open(payload);
     console.log('[openSingleCheckout] Paddle.Checkout.open() called successfully');
   } catch (error) {
@@ -211,9 +211,10 @@ export async function openTierCheckout(tierId: string, priceId?: string) {
     return;
   }
 
+  let paddle: any;
   try {
-    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!
-    await initializePaddle({ environment: process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox', token: clientToken, eventCallback: (ev) => {
+    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!;
+    paddle = await initializePaddle({ environment: process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox', token: clientToken, eventCallback: (ev) => {
       console.log('[Paddle Event]', ev?.name, ev);
       if (ev?.name === 'checkout.closed' || ev?.name === 'checkout.completed') {
         safeLocalStorage.removeItem('inCheckout');
@@ -253,7 +254,6 @@ export async function openTierCheckout(tierId: string, priceId?: string) {
 
   try {
     console.log('[openTierCheckout] Calling Paddle.Checkout.open()...');
-    const paddle = (window as any).Paddle;
     paddle.Checkout.open(payload);
     console.log('[openTierCheckout] Paddle.Checkout.open() called successfully');
   } catch (error) {

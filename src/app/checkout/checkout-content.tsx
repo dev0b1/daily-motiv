@@ -60,10 +60,11 @@ export default function CheckoutContent() {
         const tier = searchParams.get("tier") || "premium";
         const type = searchParams.get("type");
 
-        // Initialize Paddle using helper which loads the CDN and calls Initialize
+        // Initialize Paddle using helper which returns the paddle instance
+        let paddle: any;
         try {
           const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!;
-          await initializePaddle({ environment: process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox', token: clientToken, eventCallback: (ev) => {
+          paddle = await initializePaddle({ environment: process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox', token: clientToken, eventCallback: (ev) => {
             console.log('[Paddle Event]', ev?.name, ev);
           }});
         } catch (e) {
@@ -121,11 +122,9 @@ export default function CheckoutContent() {
           checkoutPayload.customData = { userId: user.id };
         }
 
-        // Open Paddle checkout
-        const paddle = (window as any).Paddle;
+        // Open Paddle checkout using the initialized instance
         paddle.Checkout.open({
           ...checkoutPayload,
-          // include customer email to help Paddle map customers
           customer: { email: resolvedUser.email }
         });
 
