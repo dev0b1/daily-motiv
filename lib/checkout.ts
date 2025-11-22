@@ -2,116 +2,155 @@
 
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-export async function openSingleCheckout(opts?: { songId?: string | null }) {
-  const supabase = createClientComponentClient();
+interface SingleCheckoutOpts {
+  songId?: string | null;
+}
 
-  // If user not signed in, try to detect session first. There are cases where
-  // getUser() can return null briefly in client-rendered contexts; fall back
-  // to getSession() to avoid mis-detecting logged-in users and redirecting
-  // them to OAuth unexpectedly.
-  const { data: { user } } = await supabase.auth.getUser();
-  let resolvedUser = user;
-  if (!resolvedUser) {
+interface IntendedPurchase {
+  type: 'single' | 'tier';
+  songId?: string | null;
+  tierId?: string;
+  priceId?: string | null;
+  ts: number;
+}
+
+// Helper to safely access localStorage
+const safeLocalStorage = {
+  setItem: (key: string, value: string) => {
+    if (typeof window === 'undefined') return;
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData?.session?.user) {
-        resolvedUser = sessionData.session.user;
-      }
+      localStorage.setItem(key, value);
     } catch (e) {
-      // ignore and proceed to OAuth flow below
+      console.warn(`Failed to set localStorage key: ${key}`, e);
+    }
+  },
+  removeItem: (key: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn(`Failed to remove localStorage key: ${key}`, e);
     }
   }
+};
 
-  if (!resolvedUser) {
-    // If user not signed in, don't automatically start OAuth anymore.
-    // Instead, redirect them to the pricing page so they can choose a plan
-    // or sign in explicitly. This avoids unexpected OAuth popups when the
-    // user's session is actually present but briefly uninitialized.
+// Helper to resolve user session with fallback
+async function resolveUser() {
+  const supabase = createClientComponentClient();
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) return user;
+
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    return sessionData?.session?.user || null;
+  } catch (e) {
+    console.warn('Failed to get session', e);
+    return null;
+  }
+}
+
+// Helper to handle Paddle availability
+function checkPaddleAvailability(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  if (!(window as any).Paddle) {
+    alert("Payment system is still loading. Please wait a moment and try again.");
+    return false;
+  }
+  
+  return true;
+}
+
+// Helper to setup Paddle event callbacks for cleanup
+function setupPaddleCallbacks() {
+  return {
+    eventCallback: (data: any) => {
+      // Clean up the checkout flag when modal closes or completes
+      if (data.name === 'checkout.closed' || data.name === 'checkout.completed') {
+        safeLocalStorage.removeItem('inCheckout');
+      }
+      
+      // Optional: Log checkout events for debugging
+      console.log('Paddle event:', data.name);
+    }
+  };
+}
+
+export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
+  const user = await resolveUser();
+
+  if (!user) {
+    // Redirect to pricing page for explicit sign-in
     if (typeof window !== 'undefined') {
-      try {
-        // Persist intended purchase so the flow can be resumed if desired.
-        const payload = { type: 'single', songId: opts?.songId || null, ts: Date.now() };
-        localStorage.setItem('intendedPurchase', JSON.stringify(payload));
-      } catch (e) {}
+      const payload: IntendedPurchase = {
+        type: 'single',
+        songId: opts?.songId || null,
+        ts: Date.now()
+      };
+      safeLocalStorage.setItem('intendedPurchase', JSON.stringify(payload));
       window.location.href = '/pricing';
     }
     return;
   }
-  // Use resolvedUser for checkout payload
-  const userToUse = resolvedUser;
 
-  if (typeof window === 'undefined') return;
-  if (!(window as any).Paddle) {
-    alert("Payment system is still loading. Please wait a moment and try again.");
-    return;
-  }
+  if (!checkPaddleAvailability()) return;
 
   const singlePriceId = process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE;
-  const priceToUse = singlePriceId || (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_PADDLE_PRICE_SINGLE;
 
-  if (!priceToUse) {
-    console.error('Single price id not configured');
+  if (!singlePriceId) {
+    console.error('Single price ID not configured');
     alert('Payment system not configured. Please contact support.');
     return;
   }
 
   const payload: any = {
-    items: [{ priceId: priceToUse, quantity: 1 }],
+    items: [{ priceId: singlePriceId, quantity: 1 }],
     settings: {
       successUrl: `${window.location.origin}/success?type=single${opts?.songId ? `&songId=${opts.songId}` : ''}`,
-      theme: 'light'
+      theme: 'light',
+      ...setupPaddleCallbacks()
+    },
+    customData: {
+      userId: user.id,
+      ...(opts?.songId && { songId: opts.songId })
     }
   };
 
-  payload.customData = {
-    userId: userToUse?.id || null,
-    ...(opts?.songId ? { songId: opts.songId } : {})
-  };
+  // Mark checkout as in progress
+  safeLocalStorage.setItem('inCheckout', 'true');
 
-  // Mark that checkout UI is opening so other client code can avoid
-  // interfering (for example, header resume logic). This flag is cleared
-  // after a successful checkout (on /success) or when auth resumes.
   try {
-    if (typeof window !== 'undefined') {
-      try { localStorage.setItem('inCheckout', 'true'); } catch (e) {}
-    }
-  } catch (e) {}
-
-  (window as any).Paddle.Checkout.open(payload);
+    (window as any).Paddle.Checkout.open(payload);
+  } catch (error) {
+    console.error('Failed to open Paddle checkout:', error);
+    safeLocalStorage.removeItem('inCheckout');
+    alert('Failed to open payment system. Please try again.');
+  }
 }
 
 export async function openTierCheckout(tierId: string, priceId?: string) {
-  const supabase = createClientComponentClient();
-  // Re-check session briefly to avoid stale nulls; prefer getUser then getSession.
-  const { data: { user } } = await supabase.auth.getUser();
-  let resolvedUser = user;
-  if (!resolvedUser) {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData?.session?.user) resolvedUser = sessionData.session.user;
-    } catch (e) {}
-  }
+  const user = await resolveUser();
 
-  if (!resolvedUser) {
-    // Don't auto-trigger OAuth. Send user to pricing so they can explicitly
-    // choose to sign in or pick a plan.
+  if (!user) {
+    // Redirect to pricing page for explicit sign-in
     if (typeof window !== 'undefined') {
-      try {
-        const payload = { type: 'tier', tierId, priceId: priceId || null, ts: Date.now() };
-        localStorage.setItem('intendedPurchase', JSON.stringify(payload));
-      } catch (e) {}
+      const payload: IntendedPurchase = {
+        type: 'tier',
+        tierId,
+        priceId: priceId || null,
+        ts: Date.now()
+      };
+      safeLocalStorage.setItem('intendedPurchase', JSON.stringify(payload));
       window.location.href = '/pricing';
     }
     return;
   }
 
-  if (typeof window === 'undefined') return;
-  if (!(window as any).Paddle) {
-    alert("Payment system is still loading. Please wait a moment and try again.");
-    return;
-  }
+  if (!checkPaddleAvailability()) return;
 
-  const priceToUse = priceId || (process.env.NEXT_PUBLIC_PADDLE_PRICE_PREMIUM as string) || priceId;
+  const priceToUse = priceId || process.env.NEXT_PUBLIC_PADDLE_PRICE_PREMIUM;
+
   if (!priceToUse) {
     console.error('Tier priceId not configured');
     alert('Payment system not configured. Please contact support.');
@@ -122,18 +161,22 @@ export async function openTierCheckout(tierId: string, priceId?: string) {
     items: [{ priceId: priceToUse, quantity: 1 }],
     settings: {
       successUrl: `${window.location.origin}/success?tier=${tierId}`,
-      theme: 'light'
+      theme: 'light',
+      ...setupPaddleCallbacks()
+    },
+    customData: {
+      userId: user.id
     }
   };
 
-  payload.customData = { userId: user?.id || null };
+  // Mark checkout as in progress
+  safeLocalStorage.setItem('inCheckout', 'true');
 
-  // Mark checkout in localStorage so UI can avoid navigating while Paddle modal is open.
   try {
-    if (typeof window !== 'undefined') {
-      try { localStorage.setItem('inCheckout', 'true'); } catch (e) {}
-    }
-  } catch (e) {}
-
-  (window as any).Paddle.Checkout.open(payload);
+    (window as any).Paddle.Checkout.open(payload);
+  } catch (error) {
+    console.error('Failed to open Paddle checkout:', error);
+    safeLocalStorage.removeItem('inCheckout');
+    alert('Failed to open payment system. Please try again.');
+  }
 }
