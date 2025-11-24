@@ -16,6 +16,7 @@ export function Header({ userProp }: { userProp?: any }) {
   const [user, setUser] = useState<any | null>(() => userProp || null);
   // legacy sign-out modal removed; mobile sign-out now calls supabase.auth.signOut directly
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [mobileCredits, setMobileCredits] = useState<number | null>(null);
@@ -146,12 +147,21 @@ export function Header({ userProp }: { userProp?: any }) {
       }
     })();
 
-    // show one-time toast after sign in
+    // show one-time toast after sign in or credits claimed
     try {
-      if (typeof window !== 'undefined' && localStorage.getItem('justSignedIn') === 'true') {
-        setShowToast(true);
-        localStorage.removeItem('justSignedIn');
-        setTimeout(() => setShowToast(false), 4000);
+      if (typeof window !== 'undefined') {
+        const claimed = localStorage.getItem('claimedCredits');
+        if (claimed) {
+          const c = Number(claimed) || 0;
+          setToastMessage(`Claimed ${c} credit${c !== 1 ? 's' : ''}`);
+          localStorage.removeItem('claimedCredits');
+          // clear after a short period
+          setTimeout(() => setToastMessage(null), 4000);
+        } else if (localStorage.getItem('justSignedIn') === 'true') {
+          setToastMessage('Signed in successfully');
+          localStorage.removeItem('justSignedIn');
+          setTimeout(() => setToastMessage(null), 4000);
+        }
       }
     } catch (e) {}
 
@@ -406,9 +416,9 @@ export function Header({ userProp }: { userProp?: any }) {
           )}
         </AnimatePresence>
       </nav>
-      {showToast && (
+      {toastMessage && (
         <div className="fixed top-20 right-6 bg-exroast-gold text-black px-4 py-2 rounded-lg shadow-lg z-50">
-          Signed in successfully
+          {toastMessage}
         </div>
       )}
       {/* Subscription prompt shown to new, non-pro users on first login */}

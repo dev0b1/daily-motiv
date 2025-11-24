@@ -68,11 +68,19 @@ export default function AuthCompleteClient() {
           if (pendingRaw) {
             const credits = Number(pendingRaw);
             if (credits && credits > 0) {
-              await fetch('/api/local-claim', {
+              const res = await fetch('/api/local-claim', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ credits })
               });
+              if (res.ok) {
+                // persist a short-lived local marker so the header can show a toast
+                try {
+                  localStorage.setItem('claimedCredits', String(credits));
+                  // also set justSignedIn for legacy behavior
+                  localStorage.setItem('justSignedIn', 'true');
+                } catch (e) {}
+              }
               localStorage.removeItem('pendingCredits');
             }
           }
