@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
       fullUrl: '',
       style,
       story: story.substring(0, 500),
-      duration: 15,
+      // Template preview length — show 20s demo
+      duration: 20,
       isPurchased: false,
       isTemplate: true
     }).returning();

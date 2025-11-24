@@ -87,7 +87,15 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
         setLoadingStep('complete');
         setLoadingProgress(100);
         setShowConfetti(true);
-
+        // Persist last preview song id so upgrade flows can find it later (guest/local flow)
+        if (!isPro && typeof window !== 'undefined' && data.songId) {
+          try {
+            localStorage.setItem('pendingPreviewSongId', data.songId);
+            if (data.previewUrl) localStorage.setItem('pendingPreviewUrl', data.previewUrl);
+          } catch (e) {
+            console.warn('Failed to write pending preview to localStorage', e);
+          }
+        }
         if (!isPro && typeof window !== 'undefined') {
           let recentRoasts: any[] = [];
           try {

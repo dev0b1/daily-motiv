@@ -27,7 +27,9 @@ export default function TemplatePage() {
 
   // Reuse the same UI as /app but allow anonymous users. If a session exists
   // we'll initialize user-specific data; otherwise operate in guest mode.
-  const [currentTab, setCurrentTab] = useState<Tab>("daily");
+  // For the template (guest/offline) page default to Roast so visitors
+  // immediately see the mock roast generation UI without signing in.
+  const [currentTab, setCurrentTab] = useState<Tab>("roast");
   const [user, setUser] = useState<any>(null);
   const [streak, setStreak] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -220,6 +222,14 @@ export default function TemplatePage() {
             timestamp: new Date().toISOString()
           });
           localStorage.setItem('recentRoasts', JSON.stringify(recentRoasts.slice(0, 3)));
+
+          // store pending preview id/url so upgrade/checkout flows can pick it up
+          try {
+            if (data.songId) localStorage.setItem('pendingPreviewSongId', data.songId);
+            if (data.previewUrl) localStorage.setItem('pendingPreviewUrl', data.previewUrl);
+          } catch (e) {
+            console.warn('Failed to persist pending preview', e);
+          }
         }
 
         setTimeout(() => {

@@ -13,6 +13,7 @@ import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { LyricsOverlay } from "@/components/LyricsOverlay";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { getSongObjectURL, saveSongAudio, getSongAudio } from '@/lib/offline-store';
 import Link from "next/link";
 import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell, FaTiktok, FaInstagram, FaWhatsapp, FaTwitter, FaLink } from "react-icons/fa";
 import { getDailySavageQuote } from "@/lib/suno-nudge";
@@ -53,6 +54,25 @@ export default function PreviewContent() {
       fetchSong(songId);
     }
   }, [songId]);
+
+  // If there is a locally stored full audio for this song, use it.
+  useEffect(() => {
+    let mounted = true;
+    const tryLoadLocal = async () => {
+      if (!song) return;
+      try {
+        const url = await getSongObjectURL(song.id);
+        if (mounted && url) {
+          // If a local copy exists, override fullUrl and mark purchased locally
+          setSong((s) => s ? ({ ...s, fullUrl: url, isPurchased: true }) : s);
+        }
+      } catch (e) {
+        console.warn('Failed to load local audio', e);
+      }
+    };
+    tryLoadLocal();
+    return () => { mounted = false; };
+  }, [song]);
 
   const fetchSong = async (id: string) => {
     try {
@@ -213,6 +233,49 @@ export default function PreviewContent() {
     }
   };
 
+  // If a pending single-song purchase exists for this song (guest flow), poll for webhook fulfillment
+  useEffect(() => {
+    let polling = true;
+    let attempts = 0;
+
+    const pendingId = typeof window !== 'undefined' ? localStorage.getItem('pendingSingleSongId') : null;
+    if (!pendingId || !song || pendingId !== song.id) return;
+
+    const poll = async () => {
+      while (polling && attempts < 40) {
+        attempts++;
+        try {
+          const res = await fetch(`/api/song/${song.id}`);
+          if (res.ok) {
+            const body = await res.json();
+            if (body.success && body.song && body.song.isPurchased && body.song.fullUrl) {
+              // Fetch full audio and store it locally
+              try {
+                const audioRes = await fetch(body.song.fullUrl);
+                const blob = await audioRes.blob();
+                await saveSongAudio(song.id, blob);
+                const objectUrl = URL.createObjectURL(blob);
+                setSong((s) => s ? ({ ...s, fullUrl: objectUrl, isPurchased: true }) : s);
+                try { localStorage.removeItem('pendingSingleSongId'); } catch (e) {}
+                break;
+              } catch (e) {
+                console.warn('Failed to fetch and store full audio', e);
+              }
+            }
+          }
+        } catch (e) {
+          console.debug('Polling /api/song failed:', e);
+        }
+
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+    };
+
+    poll();
+
+    return () => { polling = false; };
+  }, [song]);
+
   const handleLoadedMetadata = () => {
     if (!audioRef.current) return;
     const loadedDuration = audioRef.current.duration;
@@ -227,7 +290,13 @@ export default function PreviewContent() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${song?.id}` : '';
+  const shareUrl = typeof window !== 'undefined'
+    ? (song
+        ? (!song.isPurchased
+            ? song.previewUrl || `${window.location.origin}/share/${song.id}`
+            : song.fullUrl || `${window.location.origin}/share/${song.id}`)
+        : `${window.location.origin}/share/${song?.id}`)
+    : '';
 
   return (
     <div>
@@ -293,7 +362,7 @@ export default function PreviewContent() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-center gap-4 mt-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
                     <button
                       onClick={togglePlay}
                       className="bg-exroast-pink text-white px-6 py-3 rounded-full font-bold"
@@ -301,18 +370,23 @@ export default function PreviewContent() {
                       {isPlaying ? <><FaPause className="inline mr-2"/> Pause</> : <><FaPlay className="inline mr-2"/> Play</>}
                     </button>
 
+                    {/* Allow downloading the 20s preview/demo for free users */}
+                    <a href={song.previewUrl} download className="bg-white/10 text-white px-6 py-3 rounded-full font-bold inline-flex items-center gap-2 border border-white/10">
+                      <FaDownload /> Download 20s Demo
+                    </a>
+
+                    {/* Full MP3 download remains locked until purchase */}
                     {song?.isPurchased ? (
                       <a href={song.fullUrl} download className="bg-white text-black px-6 py-3 rounded-full font-bold inline-flex items-center gap-2">
-                        <FaDownload /> Download MP3
+                        <FaDownload /> Download Full MP3
                       </a>
                     ) : (
                       <button
                         onClick={() => setShowUpsellModal(true)}
                         className="bg-white/10 text-white px-6 py-3 rounded-full font-bold inline-flex items-center gap-2 border border-white/10"
-                        aria-disabled={!song?.isPurchased}
                         title="Upgrade to download the full MP3"
                       >
-                        <FaLock className="mr-2" /> Download MP3
+                        <FaLock className="mr-2" /> Full MP3
                       </button>
                     )}
                   </div>
@@ -328,55 +402,22 @@ export default function PreviewContent() {
 
                   <div className="border-t border-white/10 pt-6">
                     <h4 className="text-sm font-semibold text-white mb-3">Share Your Song</h4>
-                    {song.isPurchased ? (
-                      <SocialShareButtons 
+                    {/* Social share: always allow sharing the preview/demo link. Full-song sharing is available after purchase. */}
+                    <div className="flex flex-wrap gap-3">
+                      <SocialShareButtons
                         url={shareUrl}
                         title={song.title}
-                        message={`I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵`}
+                        message={song.isPurchased ? `I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵` : `Check out this 20s savage demo!`}
                       />
-                    ) : (
-                      <div className="flex flex-wrap gap-3">
+                      {!song.isPurchased && (
                         <button
                           onClick={() => setShowUpsellModal(true)}
-                          className="bg-black text-white px-6 py-3 rounded-full flex items-center space-x-2 shadow-lg transition-all duration-300 opacity-80"
+                          className="bg-white/10 text-white px-6 py-3 rounded-full font-bold inline-flex items-center gap-2 border border-white/10"
                         >
-                          <FaTiktok className="text-xl" />
-                          <span className="font-medium">TikTok</span>
+                          <FaLock className="mr-2" /> Upgrade for Full MP3
                         </button>
-
-                        <button
-                          onClick={() => setShowUpsellModal(true)}
-                          className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white px-6 py-3 rounded-full flex items-center space-x-2 shadow-lg transition-all duration-300 opacity-80"
-                        >
-                          <FaInstagram className="text-xl" />
-                          <span className="font-medium">Instagram</span>
-                        </button>
-
-                        <button
-                          onClick={() => setShowUpsellModal(true)}
-                          className="bg-green-500 text-white px-6 py-3 rounded-full flex items-center space-x-2 shadow-lg transition-all duration-300 opacity-80"
-                        >
-                          <FaWhatsapp className="text-xl" />
-                          <span className="font-medium">WhatsApp</span>
-                        </button>
-
-                        <button
-                          onClick={() => setShowUpsellModal(true)}
-                          className="bg-blue-400 text-white px-6 py-3 rounded-full flex items-center space-x-2 shadow-lg transition-all duration-300 opacity-80"
-                        >
-                          <FaTwitter className="text-xl" />
-                          <span className="font-medium">Twitter</span>
-                        </button>
-
-                        <button
-                          onClick={() => setShowUpsellModal(true)}
-                          className="bg-gray-200 text-gray-700 px-6 py-3 rounded-full flex items-center space-x-2 shadow-lg transition-all duration-300"
-                        >
-                          <FaLink className="text-xl" />
-                          <span className="font-medium">Copy Link</span>
-                        </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

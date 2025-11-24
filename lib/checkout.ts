@@ -131,17 +131,14 @@ export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
   console.log('[openSingleCheckout] User resolved:', user ? `${user.email} (${user.id})` : 'null');
 
   if (!user) {
-    console.log('[openSingleCheckout] User is null, redirecting to /pricing');
-    if (typeof window !== 'undefined') {
-      const payload: IntendedPurchase = {
-        type: 'single',
-        songId: opts?.songId || null,
-        ts: Date.now()
-      };
-      safeLocalStorage.setItem('intendedPurchase', JSON.stringify(payload));
-      window.location.href = '/pricing';
+    // Allow anonymous users to open the single-song checkout (guest flow).
+    // We persist a pendingSingleSongId so the client can poll for fulfillment
+    // and store the full audio locally after webhook unlocks the song.
+    console.log('[openSingleCheckout] No authenticated user — opening guest checkout');
+    if (typeof window !== 'undefined' && opts?.songId) {
+      try { safeLocalStorage.setItem('pendingSingleSongId', opts.songId); } catch (e) { console.warn('Failed to write pendingSingleSongId', e); }
     }
-    return;
+    // continue without returning — we'll open Paddle below without a user
   }
 
   // Initialize Paddle
@@ -171,12 +168,12 @@ export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
       allowLogout: false
     },
     customData: {
-      userId: user.id,
+      // If user exists, include userId so webhook can attach credits/subscription.
+      ...(user ? { userId: user.id } : {}),
       ...(opts?.songId && { songId: opts.songId })
     },
-    customer: {
-      email: user.email
-    }
+    // Include customer email when available to help Paddle identify buyer; guest checkouts omit this.
+    ...(user ? { customer: { email: user.email } } : {})
   };
 
   console.log('[openSingleCheckout] Opening checkout with payload:', {
