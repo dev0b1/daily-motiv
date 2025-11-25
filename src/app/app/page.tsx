@@ -352,12 +352,14 @@ export default function AppPage() {
           {/* Left: Roast Tab */}
           <button
             onClick={() => setCurrentTab("roast")}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
+            className={`relative flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
               currentTab === "roast"
                 ? "bg-gradient-to-t from-red-600/20 to-transparent text-exroast-pink"
                 : "text-gray-400"
             }`}
           >
+            {/* Active indicator bar (keeps display consistent across Android browsers) */}
+            <span className={`${currentTab === 'roast' ? 'block' : 'hidden'} absolute top-0 left-1/4 right-1/4 h-1 rounded-t-md bg-exroast-pink`} />
             <FaFire className="text-2xl" />
             <span className="text-xs font-bold">Roast</span>
           </button>
@@ -383,6 +385,8 @@ export default function AppPage() {
                 : "text-gray-400"
             }`}
           >
+            {/* Active indicator bar for Daily */}
+            <span className={`${currentTab === 'daily' ? 'block' : 'hidden'} absolute top-0 left-1/4 right-1/4 h-1 rounded-t-md bg-purple-400`} />
             {!hasCheckedInToday && (
               <span className="absolute top-3 right-1/4 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
             )}
