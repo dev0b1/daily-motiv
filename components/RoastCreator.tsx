@@ -7,6 +7,7 @@ import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { Tooltip } from "@/components/Tooltip";
 import clsx from 'clsx';
+import CustomSelect from '@/components/CustomSelect';
 
 interface RoastCreatorProps {
   userId?: string | null;
@@ -18,6 +19,7 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
   const router = useRouter();
   const [story, setStory] = useState("");
   const [style, setStyle] = useState<SongStyle>(initialMode || "petty");
+  const [musicStyle, setMusicStyle] = useState<string>('pop');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState<LoadingStep>("lyrics");
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -72,7 +74,7 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
     try {
       const endpoint = isPro ? '/api/generate-song' : '/api/generate-preview';
 
-      const payload: any = { story, style };
+      const payload: any = { story, style, musicStyle };
       if (userId) payload.userId = userId;
 
       const response = await fetch(endpoint, {
@@ -165,12 +167,32 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
           <p className="text-sm text-white italic">💡 The more specific, the more savage the roast</p>
         </div>
 
-        <div className="pt-4">
-          <Tooltip content="Petty = Brutal diss; Glow-Up = Victory banger">
-            <div>
-              <StyleSelector selected={style} onChange={setStyle} />
+        <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Tooltip content="Petty = Brutal diss; Glow-Up = Victory banger">
+              <div>
+                <StyleSelector selected={style} onChange={setStyle} />
+              </div>
+            </Tooltip>
+          </div>
+          <div>
+            <label className="block text-xl font-black text-exroast-gold">Choose Music Style</label>
+            <div className="mt-2">
+              <CustomSelect
+                value={musicStyle}
+                onChange={(v) => setMusicStyle(v)}
+                options={[
+                  { value: 'pop', label: 'Pop' },
+                  { value: 'rap', label: 'Rap / Hip Hop' },
+                  { value: 'rnb', label: 'R&B / Soul' },
+                  { value: 'edm', label: 'EDM / Dance' },
+                  { value: 'rock', label: 'Rock / Pop-Rock' },
+                ]}
+                ariaLabel="Choose music style"
+              />
             </div>
-          </Tooltip>
+            <p className="text-sm text-gray-400 mt-2">This selects the musical backing and influences the generation prompt.</p>
+          </div>
         </div>
 
         {/* Daily Petty Power-Ups card removed from creation UI — moved to Daily tab to avoid clutter */}

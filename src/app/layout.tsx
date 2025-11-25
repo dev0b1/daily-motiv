@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { PaddleLoader } from "@/components/PaddleLoader";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
   title: "🔥 ExRoast.fm - Turn Your Breakup Into a Savage Roast Song",
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased bg-black min-h-screen font-sans">
+        <ScrollToTop />
         <PaddleLoader />
         {children}
       </body>

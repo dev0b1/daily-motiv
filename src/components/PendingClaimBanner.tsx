@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
+// This component also attempts to claim pending single-song purchases when
+// a user signs in and a `pendingSingleSongId` exists in localStorage.
 
 export default function PendingClaimBanner() {
   const [pending, setPending] = useState<number | null>(null);
@@ -30,6 +34,44 @@ export default function PendingClaimBanner() {
       }
     } catch (e) {
       console.error('PendingClaimBanner error', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Attempt to claim a pending single-song purchase when the user signs in.
+    try {
+      if (typeof window === 'undefined') return;
+      const pendingSongId = localStorage.getItem('pendingSingleSongId');
+      if (!pendingSongId) return;
+
+      const supabase = createClientComponentClient();
+      (async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return; // not signed in yet
+
+          // Call claim endpoint to attach the purchase to this user
+          const res = await fetch('/api/credits/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ songId: pendingSongId })
+          });
+
+          const body = await res.json();
+          if (body && body.success) {
+            // Clear pending markers and refresh UI
+            try { localStorage.removeItem('pendingSingleSongId'); } catch (e) {}
+            try { localStorage.removeItem('pendingCredits'); } catch (e) {}
+            setPending(null);
+            // Optionally reload to reflect unlocked song
+            window.location.reload();
+          }
+        } catch (e) {
+          console.warn('Auto-claim pending purchase failed', e);
+        }
+      })();
+    } catch (e) {
+      console.error('PendingClaimBanner claim effect failed', e);
     }
   }, []);
 

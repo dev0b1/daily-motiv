@@ -3,6 +3,7 @@ import axios from 'axios';
 export interface OpenRouterParams {
   extractedText: string;
   style: string;
+  musicStyle?: string;
 }
 
 export interface OpenRouterResult {
@@ -47,6 +48,7 @@ CRITICAL RULES:
 - Make it laugh-out-loud funny and TikTok-viral worthy
 
 Style requested: ${params.style} (${styleDescriptions[params.style as keyof typeof styleDescriptions] || 'savage'})
+${params.musicStyle ? `Music backing requested: ${params.musicStyle} (use instrumentation, tempo, and genre-appropriate elements)` : ''}
 
 Return your response in this exact JSON format:
 {
@@ -67,7 +69,7 @@ Return your response in this exact JSON format:
             },
             {
               role: 'user',
-              content: `Create a savage ExRoast.fm ${params.style} roast song from this breakup story:\n\n${params.extractedText}`,
+              content: `Create a savage ExRoast.fm ${params.style} roast song from this breakup story:\n\n${params.extractedText}${params.musicStyle ? `\n\nMusic backing notes: ${params.musicStyle} — use appropriate instrumentation and tempo.` : ''}`,
             },
           ],
           response_format: { type: 'json_object' },

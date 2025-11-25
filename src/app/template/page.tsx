@@ -8,7 +8,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { DailyCheckInTab } from "@/components/DailyCheckInTab";
 import { RoastModeTab } from "@/components/RoastModeTab";
 import { ConfettiPop } from "@/components/ConfettiPop";
-import { FaSpinner, FaFire, FaDumbbell } from "react-icons/fa";
+import { FaSpinner, FaFire, FaDumbbell, FaArrowRight } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
@@ -296,7 +296,7 @@ export default function TemplatePage() {
                   onClick={(e) => { e.stopPropagation(); setCurrentTab("daily"); }}
                   className="text-xs md:text-sm text-amber-300 hover:text-amber-100 transition-colors mt-0.5 font-bold"
                 >
-                  Check in to make it {streak + 1} →
+                  Check in to make it {streak + 1} <FaArrowRight className="inline ml-2" />
                 </button>
               )}
               {!hasCheckedInToday && streak === 0 && (
@@ -304,7 +304,7 @@ export default function TemplatePage() {
                   onClick={(e) => { e.stopPropagation(); setCurrentTab("daily"); }}
                   className="text-xs md:text-sm text-amber-300 hover:text-amber-100 transition-colors mt-0.5 font-bold"
                 >
-                  Check in today →
+                  Check in today <FaArrowRight className="inline ml-2" />
                 </button>
               )}
             </div>

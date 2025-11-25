@@ -37,11 +37,36 @@ async function processJob(job: any) {
       const suno = sunoSongClient.createSunoClient();
       const musicResult = await suno.generateSong({ prompt, title, tags, style });
 
+      // default fullUrl to audio if video not produced
+      let finalFullUrl = musicResult.videoUrl || musicResult.audioUrl;
+
+      // If we have identifiers, attempt MP4 packaging via Suno's MP4 endpoint
+      try {
+        const taskId = musicResult.taskId || undefined;
+        // prefer explicit audioId, fall back to musicResult.id
+        const audioId = (musicResult as any).audioId || musicResult.id || undefined;
+
+        if (taskId && audioId) {
+          const mp4Resp = await suno.generateMp4({ taskId, audioId, callBackUrl: process.env.SUNO_MP4_CALLBACK || '', author: 'exroast.ai', domainName: process.env.SITE_DOMAIN || 'exroast.ai' });
+          const mp4TaskId = mp4Resp.mp4TaskId;
+          try {
+            const poll = await suno.pollForMp4(mp4TaskId, 120); // wait up to ~6 minutes
+            if (poll && poll.videoUrl) {
+              finalFullUrl = poll.videoUrl;
+            }
+          } catch (e) {
+            console.warn('MP4 generation/polling failed, falling back to audio:', e);
+          }
+        }
+      } catch (e) {
+        console.warn('MP4 packaging step failed:', e);
+      }
+
       // update songs table with returned URLs, duration, lyrics when available
       try {
         const { db } = await import('../server/db');
         const { songs } = await import('../src/db/schema');
-        await db.update(songs).set({ previewUrl: musicResult.audioUrl, fullUrl: musicResult.videoUrl || musicResult.audioUrl, duration: musicResult.duration || 60, lyrics: musicResult.lyrics || undefined }).where(eq((songs as any).id, songId));
+        await db.update(songs).set({ previewUrl: musicResult.audioUrl, fullUrl: finalFullUrl, duration: musicResult.duration || 60, lyrics: musicResult.lyrics || undefined }).where(eq((songs as any).id, songId));
       } catch (e) {
         console.warn('Failed to update song record after generation:', e);
       }

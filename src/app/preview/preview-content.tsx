@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -36,12 +37,18 @@ export default function PreviewContent() {
   const searchParams = useSearchParams();
   const songId = searchParams.get("songId");
   
+  const supabase = createClientComponentClient();
+
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [showDailyQuoteOptIn, setShowDailyQuoteOptIn] = useState(false);
+  const [showPreGenModal, setShowPreGenModal] = useState(false);
+  const [editedLyrics, setEditedLyrics] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genMessage, setGenMessage] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -81,6 +88,8 @@ export default function PreviewContent() {
       
       if (data.success) {
         setSong(data.song);
+        // Initialize edited lyrics for pre-generation modal
+        setEditedLyrics(data.song?.lyrics ?? "");
         
         if (typeof window !== 'undefined') {
           const hasSeenDailyQuoteOptIn = localStorage.getItem('hasSeenDailyQuoteOptIn');
@@ -191,15 +200,6 @@ export default function PreviewContent() {
     } else {
       // reset the shown-modal flag so replays can show the upsell again
       hasShownModalRef.current = false;
-      // If we're at the preview cap, rewind to 0 so the demo can play full 20s on replay.
-      try {
-        const PREVIEW_MAX = 20;
-        if (song && !song.isPurchased && audioRef.current.currentTime >= PREVIEW_MAX - 0.05) {
-          audioRef.current.currentTime = 0;
-          setCurrentTime(0);
-        }
-      } catch (e) {}
-
       audioRef.current.play();
       setIsPlaying(true);
     }
@@ -208,20 +208,6 @@ export default function PreviewContent() {
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
     const current = audioRef.current.currentTime;
-    const PREVIEW_MAX = 20; // seconds for public demo clips
-    // If this is not purchased, cap playback to the preview max and update UI accordingly.
-    if (song && !song.isPurchased && current >= PREVIEW_MAX) {
-      try {
-        audioRef.current.pause();
-        audioRef.current.currentTime = PREVIEW_MAX;
-      } catch (e) {}
-      setIsPlaying(false);
-      setCurrentTime(PREVIEW_MAX);
-      // Ensure end-of-preview behavior runs (upsell modal etc.)
-      try { handleAudioEnded(); } catch (e) {}
-      return;
-    }
-
     setCurrentTime(current);
   };
 
@@ -257,19 +243,94 @@ export default function PreviewContent() {
     if (!audioRef.current) return;
     const loadedDuration = audioRef.current.duration;
     setActualDuration(loadedDuration);
-    // For previews, limit the displayed duration to the preview maximum so UI shows 0/20s.
-    const PREVIEW_MAX = 20;
-    if (song && !song.isPurchased) {
-      setDuration(Math.min(loadedDuration || PREVIEW_MAX, PREVIEW_MAX));
-    } else {
-      setDuration(loadedDuration);
-    }
+    setDuration(loadedDuration);
   };
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  // Open the pre-generation modal (edit lyrics or use existing)
+  const openPreGenModal = () => {
+    setEditedLyrics(song?.lyrics ?? "");
+    setGenMessage(null);
+    setShowPreGenModal(true);
+  };
+
+  const closePreGenModal = () => {
+    setShowPreGenModal(false);
+    setIsGenerating(false);
+    setGenMessage(null);
+  };
+
+  const handleGenerate = async (useOverride: boolean) => {
+    if (!song) return;
+    setIsGenerating(true);
+    setGenMessage(null);
+    try {
+      const body: any = { story: song.story, style: song.style };
+      if (useOverride) body.overrideLyrics = editedLyrics;
+
+      // Attach userId when available so server can attribute the job.
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) body.userId = user.id;
+      } catch (e) {
+        // ignore - unauthenticated guest
+      }
+
+      // If this browser has a pending guest credit token, include it so the server
+      // can recognize/attribute the request. We will also consume the local token
+      // optimistically on success to allow immediate generation without waiting for webhook.
+      let localToken: string | null = null;
+      try {
+        localToken = typeof window !== 'undefined' ? localStorage.getItem('pendingCreditToken') : null;
+        if (localToken) body.pendingCreditToken = localToken;
+      } catch (e) {}
+
+      const res = await fetch('/api/generate-song', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        if (data.error === 'no_credits') {
+          setGenMessage('No credits available. Please complete an upgrade and wait for webhook confirmation.');
+        } else {
+          setGenMessage(data.error || 'Generation failed. Please try again.');
+        }
+        setIsGenerating(false);
+        return;
+      }
+
+      // Success: a song row + background job was enqueued. Inform the user.
+      setGenMessage('Your personalized song has been queued — we will notify you when it is ready.');
+      // If we consumed a local guest token, decrement pendingCredits and remove the token.
+      if (localToken && typeof window !== 'undefined') {
+        try {
+          const existing = localStorage.getItem('pendingCredits');
+          const existingNum = existing ? parseInt(existing, 10) : 0;
+          const newNum = Math.max(0, existingNum - 1);
+          localStorage.setItem('pendingCredits', String(newNum));
+          localStorage.removeItem('pendingCreditToken');
+        } catch (e) { console.warn('Failed to consume local pending credit token', e); }
+      }
+      setIsGenerating(false);
+      // Close modal after a short delay
+      setTimeout(() => {
+        setShowPreGenModal(false);
+        // Optionally navigate to app or refresh
+        router.push('/app');
+      }, 1200);
+    } catch (error) {
+      console.error('Generate error:', error);
+      setGenMessage('Network error. Please try again.');
+      setIsGenerating(false);
+    }
   };
 
   let shareUrl = '';
@@ -359,14 +420,14 @@ export default function PreviewContent() {
                         {isPlaying ? <><FaPause className="inline mr-2"/> Pause</> : <><FaPlay className="inline mr-2"/> Play</>}
                       </button>
 
-                      {/* Progress + timer: responsive and uses computed maxDuration */}
+                      {/* Progress + timer: use full duration (no 20s cap) */}
                       <div className="flex-1 min-w-0">
                         <div className="w-full">
                           <div className="h-2 bg-white/10 rounded-full overflow-hidden w-full">
                             <div
                               className="h-2 bg-exroast-pink"
                               style={{ width: `${Math.max(0, Math.min(100, (() => {
-                                const maxDuration = song && !song.isPurchased ? 20 : (duration || actualDuration || 0);
+                                const maxDuration = (duration || actualDuration || 0);
                                 const denom = maxDuration || 1;
                                 return (currentTime / denom) * 100;
                               })()))}%`, transition: 'width 180ms linear' }}
@@ -374,15 +435,7 @@ export default function PreviewContent() {
                           </div>
                           <div className="flex justify-between text-xs text-gray-300 mt-1">
                             {(() => {
-                              const maxDuration = song && !song.isPurchased ? 20 : (duration || actualDuration || 0);
-                              if (song && !song.isPurchased) {
-                                return (
-                                  <>
-                                    <span>{Math.floor(Math.min(currentTime, maxDuration || 0))}s</span>
-                                    <span>{Math.ceil(maxDuration || 0)}s</span>
-                                  </>
-                                );
-                              }
+                              const maxDuration = (duration || actualDuration || 0);
                               return (
                                 <>
                                   <span>{formatTime(Math.min(currentTime, maxDuration || 0))}</span>
@@ -397,9 +450,9 @@ export default function PreviewContent() {
 
                     {/* Downloads & upgrade: placed below to give horizontal space for controls */}
                     <div className="flex items-center gap-3">
-                      <a href={song.previewUrl} download className="bg-white/10 text-white px-4 py-2 rounded-full font-bold inline-flex items-center gap-2 border border-white/10" style={{ transform: 'scale(0.87)' }}>
-                        <FaDownload /> Download 20s Demo
-                      </a>
+                        <a href={song.previewUrl} download className="bg-white/10 text-white px-4 py-2 rounded-full font-bold inline-flex items-center gap-2 border border-white/10" style={{ transform: 'scale(0.87)' }}>
+                          <FaDownload /> {song.isTemplate ? 'Download Full Demo' : 'Download Demo'}
+                        </a>
 
                       {song?.isPurchased ? (
                         <a href={song.fullUrl} download className="bg-white text-black px-4 py-2 rounded-full font-bold inline-flex items-center gap-2" style={{ transform: 'scale(0.87)' }}>
@@ -423,7 +476,8 @@ export default function PreviewContent() {
                       Keep timeupdate handler as a safety net for browsers that don't honor fragments. */}
                   <audio
                     ref={audioRef}
-                    src={song && !song.isPurchased && song.previewUrl ? `${song.previewUrl}#t=0,20` : (song.fullUrl || song.previewUrl)}
+                    // Play full demo for templates and public demos — no clipping
+                    src={(song.fullUrl || song.previewUrl)}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
                     onEnded={handleAudioEnded}
@@ -437,7 +491,7 @@ export default function PreviewContent() {
                       <SocialShareButtons
                         url={shareUrl}
                         title={song.title}
-                        message={song.isPurchased ? `I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵` : `Check out this 20s savage demo!`}
+                        message={song.isPurchased ? `I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵` : `Check out this demo!`}
                       />
                       {!song.isPurchased && (
                         <button
@@ -477,6 +531,17 @@ export default function PreviewContent() {
                     <span>Upgrade to Personalized</span>
                   </motion.button>
                 )}
+                {/* Allow users with credits (server-side) to request generation. If they don't have credits,
+                    the server will return `no_credits` and we show guidance to upgrade and wait for webhook. */}
+                <div className="mt-3">
+                  <button
+                    onClick={openPreGenModal}
+                    className="bg-white/10 text-white px-4 py-2 rounded-none font-bold inline-flex items-center gap-2 border border-white/10"
+                  >
+                    <FaDownload />
+                    <span>Generate Personalized</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -524,6 +589,46 @@ export default function PreviewContent() {
           }
         }}
       />
+
+      {/* Pre-generation modal: let user edit lyrics or generate from existing */}
+      {showPreGenModal && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70" onClick={closePreGenModal} />
+          <div className="relative max-w-3xl w-full bg-black border border-white/10 rounded-lg p-6 z-10">
+            <h3 className="text-xl font-bold text-white mb-2">Prepare Your Personalized Song</h3>
+            <p className="text-sm text-gray-300 mb-4">Edit the lyrics below, or leave as-is to let the AI generate final lyrics from your story.</p>
+
+            <textarea
+              value={editedLyrics}
+              onChange={(e) => setEditedLyrics(e.target.value)}
+              rows={8}
+              className="w-full bg-white/5 text-white p-3 rounded-md mb-4"
+            />
+
+            {genMessage && (
+              <div className="text-sm text-yellow-300 mb-3">{genMessage}</div>
+            )}
+
+            <div className="flex items-center justify-end gap-3">
+              <button onClick={closePreGenModal} className="px-4 py-2 bg-white/5 text-white rounded">Cancel</button>
+              <button
+                onClick={() => handleGenerate(false)}
+                disabled={isGenerating}
+                className="px-4 py-2 bg-exroast-pink text-white rounded font-bold"
+              >
+                {isGenerating ? 'Generating...' : 'Generate (AI lyrics)'}
+              </button>
+              <button
+                onClick={() => handleGenerate(true)}
+                disabled={isGenerating || !editedLyrics || editedLyrics.trim().length < 10}
+                className="px-4 py-2 bg-white text-black rounded font-bold"
+              >
+                {isGenerating ? 'Generating...' : 'Generate (use edited lyrics)'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <DailyQuoteOptInModal
         isOpen={showDailyQuoteOptIn}

@@ -2,54 +2,54 @@
 
 # Quick orientation for code-writing agents
 
-This repo is a Next.js 16 (App Router) TypeScript web app that generates short "breakup songs" using AI generation clients and persists metadata to Postgres via Drizzle. The goal of this file is to point you to the exact places and patterns you need to safely implement features and PRs.
+This is a Next.js 16 (App Router) TypeScript app that converts short user stories into "breakup songs" using external AI/music providers and persists metadata in Postgres via Drizzle. The goal below is to point AI contributors to the exact places, conventions, and workflows you must follow to be productive and avoid regressions.
 
 Core architecture (big picture)
-- Frontend: `src/app` (Next.js App Router, React + Tailwind + Framer Motion). UI pages call internal API routes to request generation and purchases (examples: `src/app/story/page.tsx`, `src/app/checkout/page.tsx`).
-- API & server logic: `src/app/api/*` — Next server routes (exported handlers like `export async function POST(request)`). Key routes: `generate-song`, `generate-preview`, `webhook`.
-- Database: Drizzle (schema in `src/db/schema.ts`). Tables: `users`, `songs`, `subscriptions`, `transactions`, `roasts`, `templates`. Use schema types for queries.
-- Integrations & generators: `lib/` — thin wrapper clients live here (e.g. `lib/suno.ts`, `lib/openrouter.ts`, `lib/lyrics.ts`, `lib/file-storage.ts`). These export concise functions used by API routes.
+- Frontend: `src/app` — App Router pages and client components (React + Tailwind + Framer Motion). Key pages: `src/app/story/page.tsx`, `src/app/checkout/page.tsx`.
+- Server/API: `src/app/api/*` — Next server route handlers (exported functions like `export async function POST(request)`) that orchestrate prompts, generator clients, and DB writes. Important routes: `generate-song`, `generate-preview`, `webhook`.
+- Database: Drizzle ORM. Canonical schema lives in `src/db/schema.ts`. Use those generated types in all queries.
+- Integrations: `lib/` contains thin provider clients (e.g. `lib/suno.ts`, `lib/openrouter.ts`, `lib/lyrics.ts`, `lib/file-storage.ts`). Clients export factories and small `generateX` methods used by API handlers.
 
-Key files to read before editing
-- `src/app/api/webhook/route.ts` — Paddle webhook verification and transaction persistence; follow its signature verification and fulfillment flow exactly.
-- `src/app/api/generate-song/route.ts` — main flow: prompt generation (OpenRouter), fallback prompt, music via Suno client, DB insert into `songs`.
-- `src/db/schema.ts` — canonical table/column names. Always reference these types in queries.
-- `lib/db-service.ts` — helper query patterns and examples of Drizzle usage (onConflict, returning, eq, desc).
-- `lib/*.ts` — follow client wrapper patterns when adding new providers (export a factory + `generateX` functions).
+Key files to inspect before editing
+- `src/app/api/generate-song/route.ts` — full generation flow: prompt -> OpenRouter -> Suno -> DB insert (`songs`).
+- `src/app/api/generate-preview/route.ts` — preview-only generation path.
+- `src/app/api/webhook/route.ts` — Paddle webhook verification + transaction persistence. Do not change signature/verification logic lightly.
+- `src/db/schema.ts` — source of truth for table/column names (`songs.isPurchased`, `purchaseTransactionId`, etc.).
+- `lib/db-service.ts` — common Drizzle query helpers and examples (`onConflict`, `returning`, `eq`, `desc`).
+- Example clients: `lib/suno.ts`, `lib/openrouter.ts`, `lib/lyrics.ts`, `lib/file-storage.ts` — follow their patterns when adding providers.
 
 Developer workflows & exact commands
-- Install dependencies: `npm install`
-- Run dev server: `npm run dev` (starts Next on port 5000: `next dev -p 5000 -H 0.0.0.0`).
-- Build & start: `npm run build` / `npm run start` (start binds to port 5000).
-- Lint: `npm run lint` (Next's lint integration).
-- DB push & seed: `npm run db:push` (drizzle-kit push), `npm run db:seed` (runs `tsx scripts/seed-templates.ts`).
+- Install: `npm install`
+- Dev server (local): `npm run dev`  (Next runs on port 5000: `next dev -p 5000 -H 0.0.0.0`).
+- Build & start: `npm run build` && `npm run start` (production server binds to port 5000).
+- Lint: `npm run lint`.
+- DB schema push: `npm run db:push` (uses `drizzle-kit`).
+- Seed templates: `npm run db:seed` (runs `tsx scripts/seed-templates.ts`).
 
-Environment variables (discoverable from code)
-- Core: `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`, `PADDLE_API_KEY`, `PADDLE_NOTIFICATION_WEBHOOK_SECRET`, `NEXT_PUBLIC_PADDLE_ENVIRONMENT` (webhook signature verification depends on these).
-- Provider keys used by `lib/*`: OpenRouter/Suno/OpenAI/ELEVENLABS (if added). Check `lib/*` for exact env var names.
+Environment & secrets (where to look)
+- Paddle/Payments: `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`, `PADDLE_API_KEY`, `PADDLE_NOTIFICATION_WEBHOOK_SECRET`, `NEXT_PUBLIC_PADDLE_ENVIRONMENT` — used by webhook verification and client flows.
+- Provider keys: check `lib/*` for exact env var names for OpenRouter, Suno, OpenAI, ElevenLabs, etc.
 
-Data & control flow notes (examples)
-- Generation flow (from `generate-song/route.ts`): request body { story, style } → prompt via OpenRouter → generate audio via Suno → insert row into `songs` with previewUrl/fullUrl and isPurchased=false.
-- Purchase flow: frontend posts to Paddle; webhook handler (`/api/webhook`) unmarshals and stores to `transactions`, then calls handlers (e.g., `handleTransactionCompleted`) to set `songs.isPurchased = true` and `purchaseTransactionId`.
+Data & control flows (concrete examples)
+- Generation flow: POST body { story, style } → `generate-song/route.ts` constructs prompt (via `lib/openrouter`), calls `lib/suno` to create audio, then inserts into `songs` with `isPurchased=false` and preview/full URLs.
+- Purchase flow: frontend initiates Paddle checkout; Paddle sends webhook → `webhook/route.ts` verifies signature, writes `transactions`, and calls fulfillment helpers to mark `songs.isPurchased = true` and set `purchaseTransactionId`.
 
-Conventions & patterns to follow (repo-specific)
-- API routes: prefer Next App Router handlers (`export async function POST(request)`) and return NextResponse.
-- DB: import tables from `src/db/schema.ts` and use `db` from `server/db` or helpers in `lib/db-service.ts`.
-- Generator clients: keep thin wrappers in `lib/`. If adding a new provider (e.g., ElevenLabs), mirror the factory + methods pattern used by `lib/suno.ts` and call from API routes.
-- Feature flags / fallbacks: routes often include safe fallbacks (see `generate-song/route.ts` fallback prompt and music placeholders). Preserve this defensive style where network calls can fail.
+Conventions & repository patterns
+- API routes: use App Router handlers and return `NextResponse` objects.
+- DB: always import tables/types from `src/db/schema.ts` and use `lib/db-service.ts` helpers where available.
+- Provider clients: keep them thin. Export a factory (if necessary) and a small set of methods like `generateAudio`, `generateLyrics`.
+- Error handling: APIs include fallbacks and safe defaults (see `generate-song/route.ts` fallback prompts/audio placeholders). Preserve defensive patterns.
 
-What not to change without approval
-- Webhook signature/verification logic and transaction persistence flow — changing here can break payment fulfillment.
-- Drizzle schema types and column names — many queries rely on exact column names (e.g., `isPurchased`, `purchaseTransactionId`).
+Safety notes — do not change without review
+- Webhook verification & transaction persistence: changing signature logic or transaction fulfillment can break payments.
+- Drizzle schema shapes and column names: many queries depend on exact names; migrating schema requires `npm run db:push` and seed updates.
 
-PR & debugging tips
-- To exercise generation: use UI at `/story` (posts to `/api/generate-song` or `/api/generate-preview`).
-- To test webhooks locally: craft test payloads and pass them through the same verification/unmarshal flow used in `src/app/api/webhook/route.ts`.
-- DB migrations: use `npm run db:push` for schema pushes and `npm run db:seed` to populate templates.
+How to add an integration (example)
+1. Add `lib/<provider>.ts` mirroring `lib/suno.ts` style (factory + methods).
+2. Update the API route to call new client methods; keep fallbacks in place.
+3. Add required env vars to README/SETUP and update any server route that needs them.
 
-If you add integrations
-- Add the client under `lib/` with the same export style used by existing clients. Update API routes that call generator clients and add required env vars to README/SETUP docs.
-
-If something here is unclear, leave a focused comment in a PR describing the unknown and link the route/file that relies on it (e.g., `generate-song/route.ts`, `webhook/route.ts`, `src/db/schema.ts`).
+If something is unclear
+- Open a focused PR and add comments linking the file you relied on (e.g., `generate-song/route.ts`, `webhook/route.ts`, `src/db/schema.ts`). Keep changes small and test locally using `npm run dev` and `npm run db:seed`.
 
 — End of Copilot instructions

@@ -7,7 +7,7 @@ import { LYRICS_DATA } from '@/lib/lyrics-data';
 
 export async function POST(request: NextRequest) {
   try {
-    const { story, style } = await request.json();
+    const { story, style, musicStyle } = await request.json();
 
     if (!story || story.trim().length < 10) {
       return NextResponse.json(
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       fullUrl: '',
       style,
       story: story.substring(0, 500),
+      genre: musicStyle || null,
       // Template preview length — show 20s demo
       duration: 20,
       isPurchased: false,
