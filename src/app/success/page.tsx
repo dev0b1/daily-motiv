@@ -130,18 +130,23 @@ export default function SuccessPage() {
     let mounted = true;
     let pollInterval: any = null;
     let slowTimer: any = null;
+    let es: EventSource | null = null;
 
     const pollForCompletion = async (id: string) => {
       try {
         const res = await fetch(`/api/song/${encodeURIComponent(id)}`);
-        if (!res.ok) return null;
+        if (!res.ok) {
+          console.warn('pollForCompletion: non-ok response', { status: res.status });
+          return null;
+        }
         const body = await res.json();
+        console.debug('pollForCompletion: response body preview', { songId: id, bodyPreview: JSON.stringify(body).slice(0, 300) });
         return body.song;
       } catch (e) { return null; }
     };
 
     const startPolling = (id: string) => {
-      // poll every 3 seconds
+      // fallback polling (used only if SSE unavailable)
       pollInterval = setInterval(async () => {
         const s = await pollForCompletion(id);
         if (!mounted) return;
@@ -192,7 +197,42 @@ export default function SuccessPage() {
           return;
         }
 
-        // Start polling for the generated full song to appear.
+        // If provider returned a taskId we can subscribe to SSE for real-time updates
+        const taskId = data.taskId || null;
+        if (taskId && typeof window !== 'undefined' && 'EventSource' in window) {
+          try {
+            es = new EventSource(`/api/suno/stream/${encodeURIComponent(taskId)}`);
+            console.info('SSE: opened EventSource', { taskId });
+            es.onopen = () => console.debug('SSE: connection opened', { taskId });
+            es.onmessage = (evt) => {
+              console.debug('SSE: message received', { taskId, dataPreview: evt.data?.slice(0,200) });
+              try {
+                const payload = JSON.parse(evt.data);
+                if (payload && payload.status === 'complete') {
+                  console.info('SSE: generation complete received', { taskId, songId: song.id });
+                  if (slowTimer) clearTimeout(slowTimer);
+                  setIsSlow(false);
+                  if (es) es.close();
+                  window.location.href = `/song-unlocked?songId=${encodeURIComponent(song.id)}`;
+                }
+              } catch (e) {
+                console.warn('SSE message parse error', e);
+              }
+            };
+            es.onerror = (e) => {
+              console.warn('SSE connection error, falling back to polling', e);
+              if (es) es.close();
+              es = null;
+              startPolling(song.id);
+            };
+            // keep isGenerating true while waiting for SSE
+            return;
+          } catch (e) {
+            console.warn('Failed to open SSE, falling back to polling', e);
+          }
+        }
+
+        // Fallback: start polling for the generated full song to appear.
         startPolling(song.id);
       } catch (e) {
         console.error('Auto-generate error:', e);

@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { songs } from '@/src/db/schema';
 import { createOpenRouterClient } from '@/lib/openrouter';
 import { enqueueAudioJob, reserveCredit, refundCredit } from '@/lib/db-service';
+import { createSunoClient } from '@/lib/suno';
 
 interface GenerateSongRequest {
   story: string;
@@ -149,7 +150,22 @@ export async function POST(request: NextRequest) {
       reservedCredit
     };
 
-    const jobId = await enqueueAudioJob({ userId: userId || song.id, type: 'song', payload: jobPayload });
+    // Prefer callback-first Suno flow: request Suno to generate and callback to our webhook.
+    const suno = createSunoClient();
+    const callbackUrl = process.env.SUNO_CALLBACK_URL || (process.env.SITE_DOMAIN ? `https://${process.env.SITE_DOMAIN}/api/suno/callback` : '');
+
+    let taskId: string | null = null;
+    try {
+      const sunoResp: any = await suno.generateSong({ prompt: promptResult.prompt, title: promptResult.title, tags: promptResult.tags, make_instrumental: false, callBackUrl: callbackUrl });
+      taskId = sunoResp?.taskId || sunoResp?.id || null;
+      if (taskId) {
+        console.info('[api] suno callback task created', { songId: song.id, taskId });
+      }
+    } catch (e) {
+      console.warn('Suno callback generate failed, falling back to enqueue-only flow', e);
+    }
+
+    const jobId = await enqueueAudioJob({ userId: userId || song.id, type: 'song', payload: jobPayload, providerTaskId: taskId || undefined });
     if (!jobId) {
       // enqueue failed: refund reserved credit if any
       if (reservedCredit && userId) {
@@ -158,7 +174,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'failed_to_enqueue' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, songId: song.id, jobId, title: promptResult.title, lyrics });
+    return NextResponse.json({ success: true, songId: song.id, jobId, taskId, title: promptResult.title, lyrics });
   } catch (error) {
     console.error('Error generating song:', error);
     return NextResponse.json(

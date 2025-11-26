@@ -467,17 +467,56 @@ export async function saveAudioNudge(
 }
 
 // Job queue helpers
-export async function enqueueAudioJob(job: { userId: string; type: string; payload: any }): Promise<string | null> {
+export async function enqueueAudioJob(job: { userId: string; type: string; payload: any; providerTaskId?: string }): Promise<string | null> {
+  let payloadStr = '';
   try {
+    // Try to stringify the payload. If it fails (circular refs etc), fall back
+    // to a sanitized payload containing only essential fields.
+    try {
+      payloadStr = JSON.stringify(job.payload);
+    } catch (stringifyErr) {
+      console.warn('enqueueAudioJob: payload JSON.stringify failed, creating sanitized payload', stringifyErr);
+      const safePayload: any = {};
+      if (job.payload && typeof job.payload === 'object') {
+        const keys = ['songId', 'title', 'prompt', 'tags', 'style', 'musicStyle', 'audioId', 'taskId', 'userId'];
+        for (const k of keys) {
+          if (k in job.payload) safePayload[k] = job.payload[k];
+        }
+      } else {
+        safePayload.fallback = String(job.payload).slice(0, 1000);
+      }
+      payloadStr = JSON.stringify(safePayload);
+    }
+
+    // Protect against extremely large payloads by storing a trimmed summary instead.
+    const payloadSize = Buffer.byteLength(payloadStr, 'utf8');
+    if (payloadSize > 1_000_000) {
+      console.warn('enqueueAudioJob: payload too large, storing trimmed payload', { payloadSize, userId: job.userId, type: job.type });
+      const essentials: any = {};
+      if (job.payload && typeof job.payload === 'object') {
+        const keys = ['songId', 'title', 'prompt', 'tags', 'style', 'musicStyle', 'audioId', 'taskId', 'userId'];
+        for (const k of keys) if (k in job.payload) essentials[k] = job.payload[k];
+      }
+      payloadStr = JSON.stringify({ truncated: true, originalSize: payloadSize, essentials });
+    }
+
     const result = await db.insert(audioGenerationJobs).values({
       userId: job.userId,
       type: job.type,
-      payload: JSON.stringify(job.payload),
+      payload: payloadStr,
+      providerTaskId: job.providerTaskId || null,
     }).returning({ id: audioGenerationJobs.id });
 
     return result?.[0]?.id || null;
   } catch (error) {
-    console.error('Error enqueueing audio job:', error);
+    try {
+      const size = payloadStr ? Buffer.byteLength(payloadStr, 'utf8') : undefined;
+      const errMessage = (error instanceof Error) ? (error.stack || error.message) : (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      console.error('Error enqueueing audio job:', errMessage, { userId: job.userId, type: job.type, payloadSize: size });
+    } catch (logErr) {
+      const logErrMsg = (logErr instanceof Error) ? (logErr.stack || logErr.message) : String(logErr);
+      console.error('Error enqueueing audio job (and failed to log details):', logErrMsg);
+    }
     return null;
   }
 }
@@ -488,7 +527,7 @@ export async function claimPendingJob(): Promise<any | null> {
     const claimed = await db.update(audioGenerationJobs)
       .set({ status: 'processing', attempts: sql`attempts + 1`, updatedAt: new Date() })
       .where(eq(audioGenerationJobs.status, 'pending'))
-      .returning({ id: audioGenerationJobs.id, userId: audioGenerationJobs.userId, type: audioGenerationJobs.type, payload: audioGenerationJobs.payload, attempts: audioGenerationJobs.attempts });
+      .returning({ id: audioGenerationJobs.id, userId: audioGenerationJobs.userId, type: audioGenerationJobs.type, payload: audioGenerationJobs.payload, attempts: audioGenerationJobs.attempts, providerTaskId: audioGenerationJobs.providerTaskId });
 
     // returning may return multiple; pick the first
     if (claimed && claimed.length > 0) {
@@ -504,6 +543,7 @@ export async function claimPendingJob(): Promise<any | null> {
 export async function markJobSucceeded(jobId: string, resultUrl: string): Promise<boolean> {
   try {
     await db.update(audioGenerationJobs).set({ status: 'succeeded', resultUrl, updatedAt: new Date() }).where(eq(audioGenerationJobs.id, jobId));
+    console.info('[db-service] markJobSucceeded', { jobId, resultUrl });
     return true;
   } catch (error) {
     console.error('Error marking job succeeded:', error);
@@ -514,6 +554,7 @@ export async function markJobSucceeded(jobId: string, resultUrl: string): Promis
 export async function markJobFailed(jobId: string, errorMsg: string): Promise<boolean> {
   try {
     await db.update(audioGenerationJobs).set({ status: 'failed', error: errorMsg, updatedAt: new Date() }).where(eq(audioGenerationJobs.id, jobId));
+    console.info('[db-service] markJobFailed', { jobId, errorMsg });
     return true;
   } catch (error) {
     console.error('Error marking job failed:', error);

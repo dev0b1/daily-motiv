@@ -18,6 +18,7 @@ export const users = pgTable('users', {
 export const audioGenerationJobs = pgTable('audio_generation_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull(),
+  providerTaskId: text('provider_task_id'),
   type: text('type').notNull(), // 'daily' | 'song' | etc
   payload: text('payload').notNull(), // JSON payload
   status: text('status').default('pending').notNull(), // pending | processing | succeeded | failed
@@ -29,6 +30,7 @@ export const audioGenerationJobs = pgTable('audio_generation_jobs', {
 }, (table) => ({
   userIdIdx: index('audio_generation_jobs_user_id_idx').on(table.userId),
   statusIdx: index('audio_generation_jobs_status_idx').on(table.status),
+  providerTaskIdIdx: index('audio_generation_jobs_provider_task_id_idx').on(table.providerTaskId),
 }));
 
 export const songs = pgTable('songs', {
