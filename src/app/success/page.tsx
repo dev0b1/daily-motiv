@@ -22,6 +22,22 @@ interface SongPayload {
 
 export default function SuccessPage() {
   const [song, setSong] = useState<SongPayload | null>(null);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [showDebug, setShowDebug] = useState(false);
+  // append a debug log (keeps newest first, cap to 200 entries)
+  const addDebug = (msg: string) => {
+    try {
+      setDebugLogs(prev => {
+        const entry = `${new Date().toISOString()} ${msg}`;
+        const next = [entry, ...prev];
+        if (next.length > 200) next.length = 200;
+        return next;
+      });
+    } catch (e) {
+      // best-effort logging
+      console.debug('addDebug error', e);
+    }
+  };
   const [isGranting, setIsGranting] = useState(false);
   const [grantMessage, setGrantMessage] = useState<string | null>(null);
   const [editedLyrics, setEditedLyrics] = useState<string>('');
@@ -137,10 +153,12 @@ export default function SuccessPage() {
         const res = await fetch(`/api/song/${encodeURIComponent(id)}`);
         if (!res.ok) {
           console.warn('pollForCompletion: non-ok response', { status: res.status });
+          addDebug(`pollForCompletion: non-ok response ${res.status}`);
           return null;
         }
         const body = await res.json();
         console.debug('pollForCompletion: response body preview', { songId: id, bodyPreview: JSON.stringify(body).slice(0, 300) });
+        addDebug(`pollForCompletion: got song ${id} preview: ${JSON.stringify(body).slice(0,200)}`);
         return body.song;
       } catch (e) { return null; }
     };
@@ -150,6 +168,8 @@ export default function SuccessPage() {
       pollInterval = setInterval(async () => {
         const s = await pollForCompletion(id);
         if (!mounted) return;
+        console.debug('pollForCompletion: polled song state', { songId: id, s });
+        addDebug(`poll: songId=${id} isPurchased=${!!s?.isPurchased} fullUrl=${!!s?.fullUrl}`);
         if (s && s.isPurchased && s.fullUrl) {
           clearInterval(pollInterval);
           if (slowTimer) clearTimeout(slowTimer);
@@ -171,6 +191,7 @@ export default function SuccessPage() {
       setIsGenerating(true);
       setIsSlow(false);
       setGrantMessage('Generating your personalized song — this can take a minute or two.');
+      addDebug(`doGenerate: starting generation for songId=${song.id}`);
 
       // start slow-request timer (40s) to show a UI-only spike indicator
       slowTimer = setTimeout(() => {
@@ -191,6 +212,8 @@ export default function SuccessPage() {
           body: JSON.stringify(body),
         });
         const data = await res.json();
+        console.debug('doGenerate: /api/generate-song response', data);
+        addDebug(`generate-song resp: ${JSON.stringify({ success: data.success, songId: data.songId, jobId: data.jobId, taskId: data.taskId }).slice(0,300)}`);
         if (!data.success) {
           setGrantMessage(data.error || 'Failed to queue generation — it will be retried.');
           setIsGenerating(false);
@@ -199,17 +222,21 @@ export default function SuccessPage() {
 
         // If provider returned a taskId we can subscribe to SSE for real-time updates
         const taskId = data.taskId || null;
+        addDebug(`doGenerate: taskId=${taskId}`);
         if (taskId && typeof window !== 'undefined' && 'EventSource' in window) {
           try {
             es = new EventSource(`/api/suno/stream/${encodeURIComponent(taskId)}`);
             console.info('SSE: opened EventSource', { taskId });
+            addDebug(`SSE: opened EventSource for taskId=${taskId}`);
             es.onopen = () => console.debug('SSE: connection opened', { taskId });
             es.onmessage = (evt) => {
               console.debug('SSE: message received', { taskId, dataPreview: evt.data?.slice(0,200) });
+              addDebug(`SSE: message received: ${evt.data?.slice(0,300)}`);
               try {
                 const payload = JSON.parse(evt.data);
                 if (payload && payload.status === 'complete') {
                   console.info('SSE: generation complete received', { taskId, songId: song.id });
+                  addDebug(`SSE: generation complete for taskId=${taskId}`);
                   if (slowTimer) clearTimeout(slowTimer);
                   setIsSlow(false);
                   if (es) es.close();
@@ -217,10 +244,12 @@ export default function SuccessPage() {
                 }
               } catch (e) {
                 console.warn('SSE message parse error', e);
+                addDebug(`SSE parse error: ${String(e)}`);
               }
             };
             es.onerror = (e) => {
               console.warn('SSE connection error, falling back to polling', e);
+              addDebug(`SSE error, falling back to polling: ${String(e)}`);
               if (es) es.close();
               es = null;
               startPolling(song.id);
@@ -229,6 +258,7 @@ export default function SuccessPage() {
             return;
           } catch (e) {
             console.warn('Failed to open SSE, falling back to polling', e);
+            addDebug(`Failed to open SSE: ${String(e)}`);
           }
         }
 
@@ -260,6 +290,35 @@ export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="max-w-2xl w-full p-6">
+        {/* Debug toggle - small floating control */}
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            className="px-3 py-2 bg-white/10 text-white rounded shadow"
+            onClick={() => setShowDebug(s => !s)}
+          >
+            {showDebug ? 'Hide Logs' : 'Show Logs'}
+          </button>
+        </div>
+        {showDebug && (
+          <div className="fixed top-16 right-4 z-50 w-[420px] max-h-[60vh] overflow-auto bg-black/80 border border-white/10 p-3 rounded text-xs text-white">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-semibold">Client Debug Logs</div>
+              <div className="flex items-center gap-2">
+                <button className="px-2 py-1 bg-white/5 rounded" onClick={() => setDebugLogs([])}>Clear</button>
+                <button className="px-2 py-1 bg-white/5 rounded" onClick={() => setShowDebug(false)}>Close</button>
+              </div>
+            </div>
+            <div className="text-[11px] leading-tight">
+              {debugLogs.length === 0 ? (
+                <div className="text-gray-400">No logs yet</div>
+              ) : (
+                debugLogs.map((l, i) => (
+                  <div key={i} className="mb-1 break-words">{l}</div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
         <div className="text-center">
           <div className="text-6xl mb-4">✅</div>
           <h1 className="text-2xl font-bold text-white">Payment successful</h1>
