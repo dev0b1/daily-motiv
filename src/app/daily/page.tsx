@@ -159,13 +159,9 @@ export default function DailyMotivationPage() {
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Let it all out... what happened? How are you feeling?"
-                  className="w-full h-40 bg-black border-2 border-white/20 rounded-xl px-6 py-4 text-white placeholder-gray-500 focus:border-exroast-gold focus:outline-none resize-none text-lg"
-                  maxLength={500}
+                  placeholder="Let it all out... write as much as you need — this is your private space"
+                  className="w-full min-h-[220px] bg-black border-2 border-white/20 rounded-xl px-6 py-4 text-white placeholder-gray-500 focus:border-exroast-gold focus:outline-none resize-vertical text-lg"
                 />
-                <div className="text-right text-gray-400 text-sm mt-2">
-                  {message.length}/500
-                </div>
               </div>
 
               {/* Submit Button */}

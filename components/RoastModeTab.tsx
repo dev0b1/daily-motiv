@@ -12,7 +12,7 @@ interface RoastModeTabProps {
 
 export function RoastModeTab({ userId }: RoastModeTabProps) {
   const router = useRouter();
-  const [previousRoasts, setPreviousRoasts] = useState<any[]>([]);
+  const [previousHistory, setPreviousHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
       const response = await fetch(`/api/user/roasts?userId=${userId}`);
       if (response.ok) {
         const data = await response.json();
-        setPreviousRoasts(data.roasts || []);
+        setPreviousHistory(data.roasts || []);
       }
     } catch (error) {
       console.error("Error fetching previous roasts:", error);
@@ -83,7 +83,7 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
       {/* Divider */}
       <div className="flex items-center gap-4">
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        <span className="text-white/30 font-bold text-xs md:text-sm">YOUR SAVAGE LIBRARY</span>
+        <span className="text-white/30 font-bold text-xs md:text-sm">YOUR HISTORY</span>
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
 
@@ -96,12 +96,12 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
       >
         <div className="text-center space-y-2">
           <h3 className="text-2xl md:text-3xl font-black text-white">
-            Previous Roasts
+            Your History
           </h3>
           <p className="text-base md:text-lg text-gray-400">
-            {previousRoasts.length > 0
-              ? `${previousRoasts.length} savage track${previousRoasts.length !== 1 ? "s" : ""} ready to share`
-              : "No roasts yet – create your first masterpiece above!"}
+            {previousHistory.length > 0
+              ? `${previousHistory.length} saved track${previousHistory.length !== 1 ? "s" : ""} ready to share`
+              : "No entries yet – create your first one above!"}
           </p>
         </div>
 
@@ -109,19 +109,19 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
           <div className="flex justify-center py-12">
             <FaSpinner className="animate-spin text-orange-500 text-4xl" />
           </div>
-        ) : previousRoasts.length === 0 ? (
+        ) : previousHistory.length === 0 ? (
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-center py-16">
             <div className="text-6xl md:text-7xl mb-4">🎵</div>
             <p className="text-lg md:text-xl text-gray-400 font-bold">
-              Your roasts will appear here
+              Your entries will appear here
             </p>
             <p className="text-sm md:text-base text-gray-500 mt-2">
-              Create your first one to build your savage library
+              Create your first entry to build your history
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {previousRoasts.map((roast, index) => (
+            {previousHistory.map((roast, index) => (
               <motion.div
                 key={roast.id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -145,7 +145,7 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
                   </div>
                   
                   <h4 className="text-base md:text-lg font-bold text-white line-clamp-2 min-h-[3rem]">
-                    {roast.title || "Untitled Roast"}
+                    {roast.title || "Untitled Entry"}
                   </h4>
                   
                   {roast.audioUrl ? (

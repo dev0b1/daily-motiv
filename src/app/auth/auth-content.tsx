@@ -92,10 +92,10 @@ export default function AuthContent() {
           {/* Header */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-black text-gradient">
-              Welcome to ExRoast 🔥
+              Welcome to DailyMotiv ✨
             </h1>
             <p className="text-xl text-white font-bold">
-              Sign in to roast your ex with AI
+              Sign in to save your daily check-ins and receive motivational nudges
             </p>
             <p className="text-gray-400">
               Quick login with Google. No passwords, no spam.
@@ -151,7 +151,7 @@ export default function AuthContent() {
             whileTap={{ scale: 0.98 }}
             className="w-full bg-exroast-pink/20 hover:bg-exroast-pink/30 border-2 border-exroast-pink text-white py-4 px-6 rounded-xl font-black text-lg transition-all duration-300"
           >
-            Continue as Guest
+            Continue to App
           </motion.button>
 
           {/* Benefits */}
@@ -159,16 +159,16 @@ export default function AuthContent() {
             <p className="text-gray-400 text-sm font-bold">Benefits of signing in:</p>
             <ul className="space-y-2 text-sm text-gray-300">
               <li className="flex items-center gap-2">
-                <span className="text-exroast-gold">✓</span> Save all your roasts
+                <span className="text-exroast-gold">✓</span> Save your daily history
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-exroast-gold">✓</span> Manage subscriptions
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-exroast-gold">✓</span> Download your MP3s
+                <span className="text-exroast-gold">✓</span> Download your tracks
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-exroast-gold">✓</span> Priority generation
+                <span className="text-exroast-gold">✓</span> Priority nudges
               </li>
             </ul>
           </div>
@@ -176,7 +176,7 @@ export default function AuthContent() {
 
         {/* Privacy Note */}
         <p className="text-center text-gray-500 text-xs mt-6">
-          We only use your email to save your roasts. Never spam. Ever.
+          We only use your email to save your history and send important messages. Never spam.
         </p>
 
         {/* Debug Info (developer) */}

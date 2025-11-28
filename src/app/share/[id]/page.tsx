@@ -61,8 +61,8 @@ export default function SharePage() {
     return (
       <div className="min-h-screen bg-black relative flex items-center justify-center">
         <AnimatedBackground />
-        <div className="relative z-10">
-          <LoadingAnimation message="Loading song..." />
+          <div className="relative z-10">
+            <LoadingAnimation message="Loading track..." />
         </div>
       </div>
     );
@@ -75,13 +75,13 @@ export default function SharePage() {
         <Header />
         <main className="pt-32 pb-20 relative z-10">
           <div className="max-w-3xl mx-auto px-4 text-center">
-            <h1 className="text-3xl font-bold text-gradient mb-4">
-              Song not found
+              <h1 className="text-3xl font-bold text-gradient mb-4">
+              Track not found
             </h1>
             <p className="text-white mb-8">
-              This song may have been deleted or the link is invalid.
+              This track may have been deleted or the link is invalid.
             </p>
-            <AuthAwareCTA className="btn-primary">Create Your Own Song</AuthAwareCTA>
+            <AuthAwareCTA className="btn-primary">Create Your Own Track</AuthAwareCTA>
           </div>
         </main>
         <Footer />
@@ -152,7 +152,7 @@ export default function SharePage() {
                 {song.title}
               </h1>
               <p className="text-xl text-white">
-                An AI-powered savage roast
+                An AI-powered motivation track
               </p>
             </div>
 
@@ -166,7 +166,7 @@ export default function SharePage() {
 
                 <div className="card">
                   <h3 className="text-xl font-bold text-gradient mb-4">
-                    The Story Behind the Song
+                    The Story Behind the Track
                   </h3>
                   <p className="text-white italic mb-4">"{song.story}"</p>
                   <div className="flex items-center space-x-2">
@@ -181,7 +181,7 @@ export default function SharePage() {
                 <div className="card sticky top-24">
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg text-gradient">Song Preview</h3>
+                      <h3 className="font-semibold text-lg text-gradient">Track Preview</h3>
                       {!song.isPurchased && (
                         <span className="text-xs bg-exroast-pink text-white px-3 py-1 rounded-full font-medium">
                           Preview (10s)
@@ -235,21 +235,21 @@ export default function SharePage() {
                           disabled
                         >
                           <FaLock />
-                          <span>Export Full Song (Paid)</span>
+                          <span>Export Full Track (Paid)</span>
                         </button>
                         
                         <AuthAwareCTA className="w-full btn-primary"> 
-                          Create Your Own Song
+                          Create Your Own Track
                         </AuthAwareCTA>
                       </div>
                     </div>
 
                     <div className="border-t border-white/10 pt-6">
-                      <h4 className="text-sm font-semibold text-white mb-3">Share This Song</h4>
+                      <h4 className="text-sm font-semibold text-white mb-3">Share This Track</h4>
                       <SocialShareButtons 
                         url={shareUrl}
                         title={song.title}
-                        message={`Check out my AI-generated savage roast: ${song.title}`}
+                        message={`Check out this AI-generated motivation track: ${song.title}`}
                       />
                     </div>
                   </div>
@@ -259,11 +259,11 @@ export default function SharePage() {
 
             <div className="card bg-black text-center">
               <h3 className="text-2xl font-bold text-gradient mb-4">
-                👑 Want AI Savage Coaching Too?
-              </h3>
-              <p className="text-white mb-6">
-                Get personalized roast advice, no-contact strategies, and savage confidence tips from our AI coach.
-              </p>
+                  👑 Want AI Coaching Too?
+                </h3>
+                <p className="text-white mb-6">
+                  Get personalized coaching, confidence tips, and actionable advice from our AI coach.
+                </p>
               <Link href="/pricing">
                 <motion.button
                   whileHover={{ scale: 1.05 }}

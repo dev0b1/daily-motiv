@@ -8,9 +8,9 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { DailyCheckInTab } from "@/components/DailyCheckInTab";
 import { RoastModeTab } from "@/components/RoastModeTab";
 import { ConfettiPop } from "@/components/ConfettiPop";
-import { FaSpinner, FaFire, FaDumbbell } from "react-icons/fa";
+import { FaSpinner, FaFire, FaDumbbell, FaHistory } from "react-icons/fa";
 
-type Tab = "daily" | "roast";
+type Tab = "daily" | "history";
 
 export default function AppPage() {
   const router = useRouter();
@@ -29,12 +29,12 @@ export default function AppPage() {
   const profileRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Allow ?tab=roast or ?tab=daily to pre-select the tab when linking from preview
+    // Allow ?tab=history or ?tab=daily to pre-select the tab when linking
     if (typeof window !== 'undefined') {
       try {
         const params = new URLSearchParams(window.location.search || '');
         const tabParam = params.get('tab');
-        if (tabParam === 'roast' || tabParam === 'daily') {
+        if (tabParam === 'history' || tabParam === 'daily') {
           setCurrentTab(tabParam as Tab);
         }
       } catch (e) {
@@ -184,7 +184,7 @@ export default function AppPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-b border-white/10 h-14 md:h-16">
         <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
           <h1 className="text-lg md:text-xl font-black text-gradient">
-            ExRoast.fm 🔥
+            Daily Motivation
           </h1>
           
           {/* Profile Avatar Dropdown */}
@@ -276,15 +276,15 @@ export default function AppPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-center gap-8">
             <button
-              onClick={() => setCurrentTab("roast")}
+              onClick={() => setCurrentTab("history")}
               className={`relative px-8 py-4 font-black text-lg transition-all duration-200 ${
-                currentTab === "roast"
+                currentTab === "history"
                   ? "text-exroast-pink border-b-4 border-exroast-pink"
                   : "text-gray-500 hover:text-white border-b-4 border-transparent"
               }`}
             >
               <span className="flex items-center gap-2">
-                🔥 Roast Mode
+                🔥 History
               </span>
             </button>
             <button
@@ -331,7 +331,7 @@ export default function AppPage() {
                 />
               </motion.div>
             )}
-            {currentTab === "roast" && (
+            {currentTab === "history" && (
               <motion.div
                 key="roast"
                 initial={{ opacity: 0, y: 20 }}
@@ -349,19 +349,19 @@ export default function AppPage() {
       {/* Mobile Bottom Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/20 h-20">
         <div className="h-full flex items-stretch">
-          {/* Left: Roast Tab */}
+          {/* Left: History Tab */}
           <button
-            onClick={() => setCurrentTab("roast")}
+            onClick={() => setCurrentTab("history")}
             className={`relative flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
-              currentTab === "roast"
+              currentTab === "history"
                 ? "bg-gradient-to-t from-red-600/20 to-transparent text-exroast-pink"
                 : "text-gray-400"
             }`}
           >
             {/* Active indicator bar (keeps display consistent across Android browsers) */}
-            <span className={`${currentTab === 'roast' ? 'block' : 'hidden'} absolute top-0 left-1/4 right-1/4 h-1 rounded-t-md bg-exroast-pink`} />
-            <FaFire className="text-2xl" />
-            <span className="text-xs font-bold">Roast</span>
+            <span className={`${currentTab === 'history' ? 'block' : 'hidden'} absolute top-0 left-1/4 right-1/4 h-1 rounded-t-md bg-exroast-pink`} />
+            <FaHistory className="text-2xl" />
+            <span className="text-xs font-bold">History</span>
           </button>
           
           {/* Center: Streak (Tappable to Daily) */}

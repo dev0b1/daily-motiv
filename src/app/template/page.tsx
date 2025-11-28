@@ -8,7 +8,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { DailyCheckInTab } from "@/components/DailyCheckInTab";
 import { RoastModeTab } from "@/components/RoastModeTab";
 import { ConfettiPop } from "@/components/ConfettiPop";
-import { FaSpinner, FaFire, FaDumbbell, FaArrowRight } from "react-icons/fa";
+import { FaSpinner, FaFire, FaDumbbell, FaArrowRight, FaHistory } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
@@ -16,7 +16,7 @@ import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { SparkStorm } from "@/components/SparkStorm";
 import { Tooltip } from "@/components/Tooltip";
 
-type Tab = "daily" | "roast";
+type Tab = "daily" | "history";
 
 export default function TemplatePage() {
   const router = useRouter();
@@ -27,9 +27,9 @@ export default function TemplatePage() {
 
   // Reuse the same UI as /app but allow anonymous users. If a session exists
   // we'll initialize user-specific data; otherwise operate in guest mode.
-  // For the template (guest/offline) page default to Roast so visitors
-  // immediately see the mock roast generation UI without signing in.
-  const [currentTab, setCurrentTab] = useState<Tab>("roast");
+  // For the template (guest/offline) page default to Daily so visitors
+  // immediately see the Daily check-in UI without signing in.
+  const [currentTab, setCurrentTab] = useState<Tab>("daily");
   const [user, setUser] = useState<any>(null);
   const [streak, setStreak] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,12 +47,12 @@ export default function TemplatePage() {
   const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
-    // Allow ?tab=roast or ?tab=daily to pre-select the tab when linking
+    // Allow ?tab=history or ?tab=daily to pre-select the tab when linking
     if (typeof window !== 'undefined') {
       try {
         const params = new URLSearchParams(window.location.search || '');
         const tabParam = params.get('tab');
-        if (tabParam === 'roast' || tabParam === 'daily') {
+        if (tabParam === 'history' || tabParam === 'daily') {
           setCurrentTab(tabParam as Tab);
         }
       } catch (e) {
@@ -85,8 +85,9 @@ export default function TemplatePage() {
         if (session?.user) {
           await initUser(session.user);
         } else {
-          // Guest mode: don't redirect, just show the template UI without user data
-          setIsLoading(false);
+          // Require authentication for template/demo flows: redirect to auth
+          router.push('/auth');
+          return;
         }
 
         // Subscribe to auth state changes (keep reference to unsubscribe)
@@ -110,6 +111,15 @@ export default function TemplatePage() {
     };
 
     checkUser();
+
+    // If this page remains reachable for any reason, redirect to the single app entrypoint.
+    // Keep this client-side redirect minimal and friendly.
+    if (typeof window !== 'undefined') {
+      try {
+        // small delay to allow any auth checks to complete, then redirect
+        setTimeout(() => router.replace('/app'), 300);
+      } catch (e) {}
+    }
 
     return () => { 
       mounted = false;
@@ -181,7 +191,7 @@ export default function TemplatePage() {
   // Template generation handlers (same as previous template page)
   const handleGenerate = async () => {
     if (story.trim().length < 10) {
-      alert("Spill more tea! We need at least 10 characters to roast properly 🔥");
+      alert("Spill more tea! We need at least 10 characters to create an entry ✨");
       return;
     }
 
@@ -210,42 +220,16 @@ export default function TemplatePage() {
 
       const data = await response.json();
 
-      if (data.success) {
+        if (data.success) {
         setLoadingStep('complete');
         setLoadingProgress(100);
 
         setShowConfetti(true);
 
-        if (typeof window !== 'undefined') {
-          let recentRoasts = [] as any[];
-          try {
-            const raw = localStorage.getItem('recentRoasts');
-            if (raw) recentRoasts = JSON.parse(raw);
-            if (!Array.isArray(recentRoasts)) recentRoasts = [];
-          } catch (err) {
-            console.warn('Invalid recentRoasts in localStorage, resetting it.', err, localStorage.getItem('recentRoasts'));
-            recentRoasts = [];
-          }
-
-          recentRoasts.unshift({
-            id: data.songId,
-            title: data.title,
-            timestamp: new Date().toISOString()
-          });
-          localStorage.setItem('recentRoasts', JSON.stringify(recentRoasts.slice(0, 3)));
-
-          // store pending preview id/url so upgrade/checkout flows can pick it up
-          try {
-            if (data.songId) localStorage.setItem('pendingPreviewSongId', data.songId);
-            if (data.previewUrl) localStorage.setItem('pendingPreviewUrl', data.previewUrl);
-          } catch (e) {
-            console.warn('Failed to persist pending preview', e);
-          }
-        }
-
+        // Navigate to the preview for the generated item. Server persists history for authenticated users.
         setTimeout(() => {
           router.push(`/preview?songId=${data.songId}`);
-        }, 1500);
+        }, 1200);
       } else {
         throw new Error(data.error || "Failed to generate preview");
       }
@@ -320,14 +304,14 @@ export default function TemplatePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-center gap-8">
             <button
-              onClick={() => setCurrentTab("roast")}
+              onClick={() => setCurrentTab("history")}
               className={`relative px-8 py-4 font-black text-lg transition-all duration-200 ${
-                currentTab === "roast"
+                currentTab === "history"
                   ? "text-exroast-pink border-b-4 border-exroast-pink"
                   : "text-gray-500 hover:text-white border-b-4 border-transparent"
               }`}
             >
-              <span className="flex items-center gap-2">🔥 Roast Mode</span>
+              <span className="flex items-center gap-2">🔥 History</span>
             </button>
             <button
               onClick={() => setCurrentTab("daily")}
@@ -366,7 +350,7 @@ export default function TemplatePage() {
                 />
               </motion.div>
             )}
-            {currentTab === "roast" && (
+            {currentTab === "history" && (
               <motion.div
                 key="roast"
                 initial={{ opacity: 0, y: 20 }}
@@ -385,15 +369,15 @@ export default function TemplatePage() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/20 h-20">
         <div className="h-full flex items-stretch">
           <button
-            onClick={() => setCurrentTab("roast")}
+            onClick={() => router.push('/history')}
             className={`flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
               currentTab === "roast"
                 ? "bg-gradient-to-t from-red-600/20 to-transparent text-exroast-pink"
                 : "text-gray-400"
             }`}
           >
-            <FaFire className="text-2xl" />
-            <span className="text-xs font-bold">Roast</span>
+            <FaHistory className="text-2xl" />
+            <span className="text-xs font-bold">History</span>
           </button>
           <button
             onClick={() => setCurrentTab("daily")}

@@ -1,5 +1,5 @@
 import { db } from '@/server/db';
-import { templates, subscriptions, roasts, users, userPreferences, dailyQuotes, audioNudges, dailyCheckIns, audioGenerationJobs } from '@/src/db/schema';
+import { templates, subscriptions, users, userPreferences, dailyQuotes, audioNudges, dailyCheckIns, history } from '@/src/db/schema';
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { Template } from './template-matcher';
 
@@ -184,27 +184,27 @@ export async function saveRoast(roast: {
   story: string;
   mode: string;
   title: string;
-  lyrics: string;
-  audioUrl: string;
-  isTemplate: boolean;
+  lyrics?: string;
+  audioUrl?: string;
+  isTemplate?: boolean;
 }): Promise<string | null> {
   try {
     const result = await db
-      .insert(roasts)
+      .insert(history)
       .values({
-        userId: roast.userId,
+        userId: roast.userId || null,
         story: roast.story,
         mode: roast.mode,
         title: roast.title,
-        lyrics: roast.lyrics,
-        audioUrl: roast.audioUrl,
-        isTemplate: roast.isTemplate
+        notes: roast.lyrics || null,
+        audioUrl: roast.audioUrl || null,
+        isTemplate: !!roast.isTemplate
       })
-      .returning({ id: roasts.id });
+      .returning({ id: history.id });
 
     return result[0]?.id || null;
   } catch (error) {
-    console.error('Error saving roast:', error);
+    console.error('Error saving roast/history:', error);
     return null;
   }
 }
@@ -213,13 +213,13 @@ export async function getUserRoasts(userId: string): Promise<any[]> {
   try {
     const data = await db
       .select()
-      .from(roasts)
-      .where(eq(roasts.userId, userId))
-      .orderBy(desc(roasts.createdAt));
+      .from(history)
+      .where(eq(history.userId, userId))
+      .orderBy(desc(history.createdAt));
 
     return data || [];
   } catch (error) {
-    console.error('Error fetching roasts:', error);
+    console.error('Error fetching history:', error);
     return [];
   }
 }

@@ -1,3 +1,57 @@
+<!-- Copilot / AI agent quick-start for ExroastFm (daily-motivation) -->
+
+# Quick orientation for AI coding agents
+
+This repo builds a Next.js (App Router) service that turns short user stories into short audio tracks using external providers (Suno, ElevenLabs, etc.) and persists metadata in Postgres via Drizzle.
+
+Core architecture (big picture)
+- Frontend: `src/app` — App Router pages and client components. Key client flows call `/api/generate-preview` and `/api/generate-song`.
+- Server/API: `src/app/api/*` — server route handlers (export functions like `export async function POST(request)`) used by frontend and providers.
+- Background processing: `server/audio-worker.ts` — long-running job consumer that processes `audio_generation_jobs` and calls provider clients in `lib/`.
+- Database: Drizzle schema in `src/db/schema.ts`. Use `@/server/db` and query helpers in `lib/db-service.ts`.
+
+Important patterns and conventions (do not break these lightly)
+- Insert-then-enqueue: API handlers insert a placeholder `songs` row (with placeholder `previewUrl`/`fullUrl`) and then call `enqueueAudioJob`. The worker updates the row when audio is ready. See `src/app/api/generate-song/route.ts` and `lib/db-service.ts`.
+- Provider task mapping: Persist provider task IDs on `audio_generation_jobs.providerTaskId` so callback handlers can find the job. The worker prefers callback-first flows but will fall back to polling/mp4 packaging as needed (`server/audio-worker.ts`).
+- Flexible callback shapes: `src/app/api/suno/callback/route.ts` accepts multiple callback shapes (nested `data`, `task_id`, or top-level `id`) — follow its normalization logic when sending test callbacks.
+- Template previews: Free previews use templates (short demo mp3s). See `src/app/api/generate-preview/route.ts` and `lib/lyrics-data.ts`.
+
+Where to add or modify provider integrations
+- Keep provider clients thin and side-effect free. Place under `lib/` (e.g., `lib/suno.ts`, `lib/suno-nudge.ts`, `lib/eleven.ts`). Export a factory and methods like `generateSong`, `generateMp4`, `pollForMp4`.
+- Prefer callback-first if provider supports it. Use `process.env.SUNO_CALLBACK_URL` or derive from `SITE_DOMAIN` for callback URLs.
+
+Key files to inspect (starter list)
+- `src/app/api/generate-song/route.ts` — personalized generation flow (insert + enqueue + optional reserveCredit)
+- `src/app/api/generate-preview/route.ts` — template preview path
+- `src/app/api/suno/generate/route.ts` and `src/app/api/suno/callback/route.ts` — Suno integration & webhook
+- `server/audio-worker.ts` — background processing and mp4 packaging flows
+- `src/db/schema.ts` — Drizzle tables (notable columns: `songs.isTemplate`, `songs.previewUrl`, `audio_generation_jobs.providerTaskId`, `subscriptions.songsRemaining`)
+- `lib/db-service.ts` — enqueue/claim/mark job helpers; `reserveCredit` / `refundCredit`
+
+Dev workflow & commands
+- Install: `npm install`
+- Dev server: `npm run dev` (Next runs on port 5000 by default)
+- Build: `npm run build`
+- Start prod: `npm run start`
+- DB: `npm run db:push` then `npm run db:seed` (seeds templates used by preview)
+
+Environment variables to check
+- Suno: `SUNO_API_KEY`, `SUNO_CALLBACK_URL`, `SUNO_MP4_CALLBACK`, `SITE_DOMAIN`
+- Payments/Paddle: `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`, `PADDLE_API_KEY`, `PADDLE_NOTIFICATION_WEBHOOK_SECRET`, `NEXT_PUBLIC_PADDLE_ENVIRONMENT`
+
+Testing & debugging tips
+- Simulate provider callbacks: POST a JSON payload to `/api/suno/callback` with one of the accepted shapes (e.g., `{ "task_id": "...", "data": [...] }` or `{ "id": "...", "audio_url": "..." }`). The handler will match job by `providerTaskId` and update `songs`.
+- Run the worker locally: `node server/audio-worker.ts` (or `tsx server/audio-worker.ts`) after configuring DB and env vars; watch logs for `markJobSucceeded`/`markJobFailed` traces.
+- Logs: use the console output from `next dev` and the worker for diagnostics. Many modules use `console.info/warn/error`.
+
+Schema & migration notes
+- The canonical schema is `src/db/schema.ts`. If you add columns, update queries in `lib/db-service.ts` and worker code referencing them, then run `npm run db:push`.
+
+Contribution guidance
+- Keep changes small and focused. Preserve the placeholder-insert + enqueue pattern unless redesigning the generation pipeline.
+- When adding a provider method that returns a task id, ensure the job row or `audio_generation_jobs` is updated with `providerTaskId` so callbacks work reliably.
+
+If you need clarification, reference the exact file and function you inspected and ask one targeted question (e.g., "Should I add provider X's task mapping in `enqueueAudioJob` or in the worker?").
 <!-- Copilot / AI agent quick-start for Breakup-music -->
 
 # Quick orientation for code-writing agents

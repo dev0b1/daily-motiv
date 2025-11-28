@@ -34,6 +34,8 @@ export default function SongUnlockedClient() {
   const [duration, setDuration] = useState<number>(60);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [videoExists, setVideoExists] = useState(false);
+  const [creatingVideo, setCreatingVideo] = useState(false);
 
   useEffect(() => {
     if (!songId) return;
@@ -57,6 +59,80 @@ export default function SongUnlockedClient() {
 
     return () => { mounted = false; };
   }, [songId]);
+
+  // Clear any pending single-song id once the song is purchased/viewed
+  useEffect(() => {
+    if (!song?.isPurchased) return;
+    try { localStorage.removeItem('pendingSingleSongId'); } catch (e) { /* ignore */ }
+  }, [song?.isPurchased]);
+
+  // Check if a generated video exists in `public/generated/<songId>.mp4`
+  useEffect(() => {
+    if (!song?.id) return;
+    let mounted = true;
+    const check = async () => {
+      try {
+        const url = `${window.location.origin}/generated/${song.id}.mp4`;
+        const res = await fetch(url, { method: 'HEAD' });
+        if (!mounted) return;
+        if (res.ok) setVideoExists(true);
+      } catch (e) {
+        // ignore - video probably doesn't exist
+      }
+    };
+    check();
+    return () => { mounted = false; };
+  }, [song?.id]);
+
+  // Create video: enqueue job and poll for generated file
+  const createVideo = async () => {
+    if (!song?.id || creatingVideo) return;
+    setCreatingVideo(true);
+    try {
+      const res = await fetch(`/api/song/${song.id}/create-video`, { method: 'POST' });
+      const data = await res.json();
+      if (!data?.success) {
+        console.warn('Failed to enqueue video job', data);
+        setCreatingVideo(false);
+        return;
+      }
+      // Poll the job status endpoint for updates (more reliable than HEAD polling)
+      const jobId = data.jobId;
+      let attempts = 0;
+      const maxAttempts = 240; // ~20 minutes
+      const interval = setInterval(async () => {
+        attempts += 1;
+        try {
+          const r = await fetch(`/api/audio-job/${jobId}`);
+          const jd = await r.json();
+          if (jd?.success && jd.job) {
+            if (jd.job.status === 'succeeded' && jd.job.resultUrl) {
+              // use resultUrl provided by worker
+              setVideoExists(true);
+              setCreatingVideo(false);
+              clearInterval(interval);
+              return;
+            }
+            if (jd.job.status === 'failed') {
+              console.warn('Video job failed', jd.job.error);
+              setCreatingVideo(false);
+              clearInterval(interval);
+              return;
+            }
+          }
+        } catch (e) {
+          // ignore transient errors
+        }
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          setCreatingVideo(false);
+        }
+      }, 5000);
+    } catch (e) {
+      console.error('createVideo failed', e);
+      setCreatingVideo(false);
+    }
+  };
 
   // Poll until purchase is registered (webhook) and fullUrl becomes available.
   useEffect(() => {
@@ -199,6 +275,12 @@ export default function SongUnlockedClient() {
                 <>
                   <div className="mt-2">
                     <LyricsOverlay lyrics={song?.lyrics} duration={duration} isPlaying={isPlaying} currentTime={currentTime} />
+                    <div className="mt-3">
+                      <span className="inline-flex items-center gap-2 text-sm text-gray-300">
+                        Powered by
+                        <span className="ml-1 inline-block bg-white text-black text-xs font-semibold uppercase px-2 py-1 rounded">exroast.ai</span>
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-center gap-4 mt-6">
@@ -216,6 +298,31 @@ export default function SongUnlockedClient() {
                     {song?.isPurchased && (
                       <a href={song.fullUrl} download className="bg-white text-black px-6 py-3 rounded-full font-bold inline-flex items-center gap-2" onClick={() => track('download_clicked', { songId })}>
                         <FaDownload /> Download MP3
+                      </a>
+                    )}
+
+                    {!videoExists && (
+                      <button
+                        onClick={() => {
+                          track('create_video_clicked', { songId: song?.id });
+                          createVideo();
+                        }}
+                        disabled={creatingVideo}
+                        className="bg-white text-black px-6 py-3 rounded-full font-bold inline-flex items-center gap-2"
+                      >
+                        {creatingVideo ? 'Creating Video...' : 'Create Video'}
+                      </button>
+                    )}
+
+                    {videoExists && (
+                      <a
+                        href={`/generated/${song?.id}.mp4`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-exroast-pink text-white px-6 py-3 rounded-full font-bold inline-flex items-center gap-2"
+                        onClick={() => track('view_video', { songId: song?.id })}
+                      >
+                        View Video
                       </a>
                     )}
                   </div>

@@ -70,7 +70,7 @@ export default function AccountPage() {
         </div>
 
         <div className="card p-6 mt-6">
-          <h3 className="text-lg font-bold mb-3">Your Roasts</h3>
+          <h3 className="text-lg font-bold mb-3">Your History</h3>
           {data?.roasts && data.roasts.length > 0 ? (
             <ul className="space-y-3">
               {data.roasts.map((r: any) => (
@@ -81,7 +81,7 @@ export default function AccountPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-gray-400">You have no saved roasts yet.</p>
+            <p className="text-gray-400">You have no saved history entries yet.</p>
           )}
         </div>
       </div>

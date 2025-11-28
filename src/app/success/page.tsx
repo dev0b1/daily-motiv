@@ -181,14 +181,14 @@ export default function SuccessPage() {
           if (user) body.userId = user.id;
         } catch (e) {}
 
-        const res = await fetch('/api/generate-song', {
+        const res = await fetch('/api/generate-eleven', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
         const data = await res.json();
-        console.debug('doGenerate: /api/generate-song response', data);
-        addDebug(`generate-song resp: ${JSON.stringify({ success: data.success, songId: data.songId, jobId: data.jobId, taskId: data.taskId }).slice(0,300)}`);
+        console.debug('doGenerate: /api/generate-eleven response', data);
+        addDebug(`generate-eleven resp: ${JSON.stringify({ success: data.success, songId: data.songId, videoUrl: data.videoUrl }).slice(0,300)}`);
         if (!data.success) {
           setGrantMessage(data.error || 'Failed to queue generation — it will be retried.');
           setIsGenerating(false);
@@ -198,7 +198,15 @@ export default function SuccessPage() {
         // Persist pending song id so app can find it later
         try { localStorage.setItem('pendingSingleSongId', data.songId); } catch (e) {}
 
-        // Do not block waiting for completion. Notify the user how to retrieve the song later.
+        // If server returned a final video URL, redirect to the unlocked page immediately
+        if (data.videoUrl) {
+          if (slowTimer) clearTimeout(slowTimer);
+          setIsSlow(false);
+          window.location.href = `/song-unlocked?songId=${encodeURIComponent(data.songId)}`;
+          return;
+        }
+
+        // Otherwise, inform the user generation started and will be available later
         setIsGenerating(false);
         setGrantMessage('Generation started — we will update your account when it finishes. You can return to the app and use the "Check generated song" button.');
       } catch (e) {

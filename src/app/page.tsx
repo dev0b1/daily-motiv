@@ -9,7 +9,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-black relative">
+    <div className="min-h-screen bg-exroast-bg relative">
       <AnimatedBackground />
       <div className="relative z-10">
         <Header />
@@ -24,76 +24,75 @@ export default function HomePage() {
               className="space-y-4"
             >
               <h1 className="text-5xl sm:text-6xl md:text-7xl font-black leading-tight text-white">
-                Turn your breakup into<br />
-                <span className="text-gradient">savage closure</span>
+                Daily motivation & an honest place to vent
               </h1>
-              <p className="text-3xl md:text-4xl font-black text-exroast-gold">
-                …and daily glow-ups 🔥
+              <p className="text-3xl md:text-4xl font-black text-exroast-accent">
+                Unlimited venting • Private reflections • Bite-sized audio boosts
               </p>
             </motion.div>
 
             {/* Two Big Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mt-16 max-w-5xl mx-auto">
-              {/* Roast Your Ex Card */}
-              <Link href="/template">
+              {/* History / Previous Vents Card */}
+              <Link href="/app?tab=history">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
-                  whileHover={{ scale: 1.05, y: -10 }}
-                  className="card border-4 border-exroast-pink hover:border-exroast-gold cursor-pointer h-full min-h-[400px] flex flex-col justify-between bg-gradient-to-br from-exroast-pink/10 to-black hover:shadow-[0_0_40px_rgba(255,105,180,0.4)] transition-all duration-300"
+                  whileHover={{ scale: 1.03, y: -6 }}
+                  className="card border-4 border-white/10 cursor-pointer h-full min-h-[400px] flex flex-col justify-between bg-gradient-to-br from-exroast-bg via-exroast-bg to-exroast-bg transition-all duration-300"
                 >
                   <div className="flex-1 flex flex-col items-center justify-center space-y-6 p-8">
                     <motion.div
-                      whileHover={{ scale: 1.2, rotate: 10 }}
+                      whileHover={{ scale: 1.05 }}
                       transition={{ type: "spring", stiffness: 300 }}
                       className="text-8xl emoji-enhanced"
                     >
-                      🔥
+                      📚
                     </motion.div>
-                    <h2 className="text-4xl md:text-5xl font-black text-gradient">
-                      ROAST YOUR EX
+                    <h2 className="text-4xl md:text-5xl font-black text-white">
+                      HISTORY
                     </h2>
                     <p className="text-xl md:text-2xl text-white font-bold">
-                      30-second AI diss track<br />that ends them
+                      Browse your previous vents and motivation prompts
                     </p>
                   </div>
                   <div className="p-6">
                     <div className="btn-primary w-full text-xl py-4 flex items-center justify-center gap-3">
-                      <span>Create My Roast</span>
-                      <FaFire />
+                      <span>View History</span>
                     </div>
                   </div>
                 </motion.div>
               </Link>
 
               {/* Daily Glow-Up Card */}
-              <Link href="/daily">
+              {/* Daily Vent / Motivation Card (primary) */}
+                  <Link href="/daily">
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
-                  whileHover={{ scale: 1.05, y: -10 }}
-                  className="card border-4 border-purple-500 hover:border-exroast-gold cursor-pointer h-full min-h-[400px] flex flex-col justify-between bg-gradient-to-br from-purple-900/20 via-exroast-gold/10 to-black hover:shadow-[0_0_40px_rgba(138,43,226,0.4)] transition-all duration-300"
+                  whileHover={{ scale: 1.06, y: -12 }}
+                  className="card border-4 border-exroast-primary cursor-pointer h-full min-h-[400px] flex flex-col justify-between bg-gradient-to-br from-exroast-primary/10 via-exroast-accent/6 to-exroast-bg hover:shadow-[0_0_48px_rgba(124,58,237,0.28)] transition-all duration-300"
                 >
                   <div className="flex-1 flex flex-col items-center justify-center space-y-6 p-8">
                     <motion.div
-                      whileHover={{ scale: 1.2, rotate: -10 }}
+                      whileHover={{ scale: 1.18, rotate: -6 }}
                       transition={{ type: "spring", stiffness: 300 }}
                       className="text-8xl emoji-enhanced"
                     >
-                      💪
+                      ⚡️
                     </motion.div>
-                    <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 to-exroast-gold bg-clip-text text-transparent">
-                      DAILY GLOW-UP
+                    <h2 className="text-4xl md:text-5xl font-black bg-clip-text text-white">
+                      DAILY VENT
                     </h2>
                     <p className="text-xl md:text-2xl text-white font-bold">
-                      Vent & get motivation<br />every single day
+                      Unlimited venting + bite-sized motivation
                     </p>
                   </div>
                   <div className="p-6">
-                    <div className="btn-secondary w-full text-xl py-4 flex items-center justify-center gap-3 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700">
-                      <span>Check In Today</span>
+                    <div className="btn-secondary w-full text-xl py-4 flex items-center justify-center gap-3 bg-gradient-to-r from-exroast-primary to-exroast-primary/90 hover:from-exroast-primary/90 hover:to-exroast-primary">
+                      <span>Open Daily</span>
                       <FaDumbbell />
                     </div>
                   </div>

@@ -134,7 +134,7 @@ export default function PreviewContent() {
         localStorage.setItem('hasSeenDailyQuoteOptIn', 'true');
         localStorage.setItem('dailyQuotesEnabled', 'true');
         localStorage.setItem('audioNudgesEnabled', audioEnabled ? 'true' : 'false');
-        alert(`🔥 You're in! Daily savage quotes activated locally.\n\nToday's quote: ${testQuote}\n\n${audioEnabled ? 'Audio nudges (local) enabled - upgrade to Pro for server-sent audio nudges!' : 'Text quotes only - upgrade to Pro for server audio nudges!'}`);
+        alert(`🔥 You're in! Daily motivational quotes activated locally.\n\nToday's quote: ${testQuote}\n\n${audioEnabled ? 'Audio nudges (local) enabled - upgrade to Pro for server-sent audio nudges!' : 'Text quotes only - upgrade to Pro for server audio nudges!'}`);
       }
       return;
     }
@@ -151,11 +151,11 @@ export default function PreviewContent() {
       if (data.success) {
         console.log('✅ Opt-in successful!');
         console.log('Test quote from API:', data.testQuote);
-        console.log("Today's savage quote:", testQuote);
+        console.log("Today's quote:", testQuote);
 
         if (typeof window !== 'undefined') {
           localStorage.setItem('hasSeenDailyQuoteOptIn', 'true');
-          alert(`🔥 You're in! Daily savage quotes activated.\n\nToday's quote: ${testQuote}\n\n${audioEnabled ? 'Audio nudges enabled - you\'ll get personalized 15s motivation with beats!' : 'Text quotes only - upgrade to Pro for audio nudges!'}`);
+          alert(`🔥 You're in! Daily motivational quotes activated.\n\nToday's quote: ${testQuote}\n\n${audioEnabled ? 'Audio nudges enabled - you\'ll get personalized 15s motivation with beats!' : 'Text quotes only - upgrade to Pro for audio nudges!'}`);
         }
       } else {
         console.error('Opt-in failed:', data.error);
@@ -174,7 +174,7 @@ export default function PreviewContent() {
   if (loading) {
     return (
       <div className="min-h-[70vh] relative flex items-center justify-center">
-        <LoadingAnimation message="Loading your song..." />
+        <LoadingAnimation message="Loading your track..." />
       </div>
     );
   }
@@ -183,8 +183,8 @@ export default function PreviewContent() {
     return (
       <div className="min-h-[70vh] relative flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold text-gradient">Song not found</h1>
-          <p className="text-white">Please try generating a new song</p>
+          <h1 className="text-3xl font-bold text-gradient">Track not found</h1>
+          <p className="text-white">Please try generating a new track</p>
         </div>
       </div>
     );
@@ -356,10 +356,10 @@ export default function PreviewContent() {
               <div className="text-6xl mb-4">🔥</div>
             </motion.div>
             <h1 className="text-4xl md:text-5xl font-bold text-gradient">
-              Your Song is Ready!
+              Your Motivation Track is Ready!
             </h1>
             <p className="text-xl text-white">
-              Your savage roast is ready! Listen and share 🔥
+              Your motivation track is ready! Listen and share 🔥
             </p>
           </div>
 
@@ -367,7 +367,7 @@ export default function PreviewContent() {
             <div className="space-y-6">
               <div className="card bg-black">
                 <h3 className="text-xl font-bold text-gradient mb-4">
-                  Your Breakup Story
+                  Your Story
                 </h3>
                 <p className="text-white italic mb-4">"{song.story}"</p>
                 <div className="flex items-center space-x-2">
@@ -473,13 +473,13 @@ export default function PreviewContent() {
                   />
 
                   <div className="border-t border-white/10 pt-6">
-                    <h4 className="text-sm font-semibold text-white mb-3">Share Your Song</h4>
+                    <h4 className="text-sm font-semibold text-white mb-3">Share Your Track</h4>
                     {/* Social share: always allow sharing the preview/demo link. Full-song sharing is available after purchase. */}
                     <div className="flex flex-wrap gap-3">
                       <SocialShareButtons
                         url={shareUrl}
                         title={song.title}
-                        message={song.isPurchased ? `I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵` : `Check out this demo!`}
+                        message={song.isPurchased ? `I just paid $4.99 for a personalized motivation track and it’s the best money I’ve spent 🔥🎵` : `Check out this demo!`}
                       />
                       {!song.isPurchased && (
                         <button
@@ -503,7 +503,7 @@ export default function PreviewContent() {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gradient mb-2">
-                  Get Your Personalized Song
+                  Get Your Personalized Track
                 </h3>
                 <p className="text-white mb-4">
                   This preview is a polished demo. Want a personalized version tailored to your story — with exclusive mastering and a downloadable MP3? Upgrade to get the full, personalized track delivered to you.
@@ -527,7 +527,7 @@ export default function PreviewContent() {
                     className="bg-white/10 text-white px-4 py-2 rounded-none font-bold inline-flex items-center gap-2 border border-white/10"
                   >
                     <FaDownload />
-                    <span>Generate Personalized</span>
+                    <span>Generate Personalized Track</span>
                   </button>
                 </div>
               </div>
@@ -629,11 +629,11 @@ export default function PreviewContent() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/20 h-20">
         <div className="h-full flex items-stretch">
           <Link
-            href="/app?tab=roast"
+            href="/app?tab=history"
             className={`flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 text-gray-400`}
           >
             <FaFire className="text-2xl" />
-            <span className="text-xs font-bold">Roast</span>
+            <span className="text-xs font-bold">History</span>
           </Link>
 
           <Link

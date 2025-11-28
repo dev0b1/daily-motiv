@@ -15,47 +15,8 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
 });
 
-export const audioGenerationJobs = pgTable('audio_generation_jobs', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull(),
-  providerTaskId: text('provider_task_id'),
-  type: text('type').notNull(), // 'daily' | 'song' | etc
-  payload: text('payload').notNull(), // JSON payload
-  status: text('status').default('pending').notNull(), // pending | processing | succeeded | failed
-  resultUrl: text('result_url'),
-  error: text('error'),
-  attempts: integer('attempts').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
-}, (table) => ({
-  userIdIdx: index('audio_generation_jobs_user_id_idx').on(table.userId),
-  statusIdx: index('audio_generation_jobs_status_idx').on(table.status),
-  providerTaskIdIdx: index('audio_generation_jobs_provider_task_id_idx').on(table.providerTaskId),
-}));
-
-export const songs = pgTable('songs', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  title: text('title').notNull(),
-  story: text('story').notNull(),
-  style: text('style').notNull(),
-  lyrics: text('lyrics'),
-  genre: text('genre'),
-  mood: text('mood'),
-  previewUrl: text('preview_url').notNull(),
-  fullUrl: text('full_url').notNull(),
-  duration: integer('duration').default(30).notNull(),
-  isPurchased: boolean('is_purchased').default(false).notNull(),
-  isTemplate: boolean('is_template').default(false).notNull(),
-  purchaseTransactionId: text('purchase_transaction_id'),
-  userId: text('user_id'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
-  expiresAt: timestamp('expires_at'),
-}, (table) => ({
-  userIdIdx: index('songs_user_id_idx').on(table.userId),
-  isPurchasedIdx: index('songs_is_purchased_idx').on(table.isPurchased),
-  isTemplateIdx: index('songs_is_template_idx').on(table.isTemplate),
-}));
+// Audio generation jobs and songs removed: app no longer generates audio server-side.
+// Keeping history, daily_check_ins and subscriptions for core features.
 
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -87,19 +48,19 @@ export const templates = pgTable('templates', {
   modeIdx: index('templates_mode_idx').on(table.mode),
 }));
 
-export const roasts = pgTable('roasts', {
+export const history = pgTable('history', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id'),
   story: text('story').notNull(),
   mode: text('mode').notNull(),
   title: text('title').notNull(),
-  lyrics: text('lyrics'),
-  audioUrl: text('audio_url').notNull(),
+  notes: text('notes'),
+  audioUrl: text('audio_url'), // optional: may be null when no audio exists
   isTemplate: boolean('is_template').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
-  userIdIdx: index('roasts_user_id_idx').on(table.userId),
-  createdAtIdx: index('roasts_created_at_idx').on(table.createdAt),
+  userIdIdx: index('history_user_id_idx').on(table.userId),
+  createdAtIdx: index('history_created_at_idx').on(table.createdAt),
 }));
 
 export const transactions = pgTable('transactions', {
@@ -119,8 +80,7 @@ export const transactions = pgTable('transactions', {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-export type Song = typeof songs.$inferSelect;
-export type InsertSong = typeof songs.$inferInsert;
+// Songs table removed; audio generation is out of scope for current app.
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = typeof subscriptions.$inferInsert;
@@ -128,8 +88,8 @@ export type InsertSubscription = typeof subscriptions.$inferInsert;
 export type Template = typeof templates.$inferSelect;
 export type InsertTemplate = typeof templates.$inferInsert;
 
-export type Roast = typeof roasts.$inferSelect;
-export type InsertRoast = typeof roasts.$inferInsert;
+export type History = typeof history.$inferSelect;
+export type InsertHistory = typeof history.$inferInsert;
 
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = typeof transactions.$inferInsert;
@@ -167,9 +127,9 @@ export const audioNudges = pgTable('audio_nudges', {
   userId: uuid('user_id').notNull(),
   userStory: text('user_story').notNull(),
   dayNumber: integer('day_number').notNull(),
-  audioUrl: text('audio_url').notNull(),
+  audioUrl: text('audio_url'), // optional — audio generation may be disabled
   motivationText: text('motivation_text').notNull(),
-  creditsUsed: integer('credits_used').default(1).notNull(),
+  creditsUsed: integer('credits_used').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index('audio_nudges_user_id_idx').on(table.userId),

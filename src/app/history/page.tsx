@@ -9,17 +9,17 @@ import AuthAwareCTA from '@/components/AuthAwareCTA';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
 import { FaPlay, FaShare, FaLock, FaCrown } from 'react-icons/fa';
 
-interface Roast {
+interface HistoryEntry {
   id: string;
   title: string;
   mode: string;
-  audioUrl: string;
+  audioUrl?: string;
   createdAt: string;
   isTemplate: boolean;
 }
 
 export default function HistoryPage() {
-  const [roasts, setRoasts] = useState<Roast[]>([]);
+  const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [isPro, setIsPro] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -31,22 +31,22 @@ export default function HistoryPage() {
     try {
       if (typeof window === 'undefined') return;
       
-      let recentRoasts: any[] = [];
+      let recentHistory: any[] = [];
       try {
-        const raw = localStorage.getItem('recentRoasts');
-        if (raw) recentRoasts = JSON.parse(raw);
-        if (!Array.isArray(recentRoasts)) recentRoasts = [];
+        const raw = localStorage.getItem('recentHistory');
+        if (raw) recentHistory = JSON.parse(raw);
+        if (!Array.isArray(recentHistory)) recentHistory = [];
       } catch (err) {
-        console.warn('Invalid recentRoasts in localStorage, resetting it.', err, localStorage.getItem('recentRoasts'));
-        recentRoasts = [];
+        console.warn('Invalid recentHistory in localStorage, resetting it.', err, localStorage.getItem('recentHistory'));
+        recentHistory = [];
       }
       
-      if (recentRoasts.length === 0) {
+      if (recentHistory.length === 0) {
         setLoading(false);
         return;
       }
 
-      const roastPromises = recentRoasts.map(async (item: any) => {
+      const roastPromises = recentHistory.map(async (item: any) => {
         try {
           const response = await fetch(`/api/song/${item.id}`);
           const data = await response.json();
@@ -55,9 +55,8 @@ export default function HistoryPage() {
           return null;
         }
       });
-
       const loadedRoasts = (await Promise.all(roastPromises)).filter(Boolean);
-      setRoasts(loadedRoasts);
+      setEntries(loadedRoasts as HistoryEntry[]);
     } catch (error) {
       console.error('Error loading history:', error);
     } finally {
@@ -93,11 +92,11 @@ export default function HistoryPage() {
           >
             <h1 className="text-5xl font-black mb-4">
               <span className="bg-gradient-to-r from-exroast-pink to-exroast-gold bg-clip-text text-transparent">
-                Your Roast History 🔥
+                Your History 🔥
               </span>
             </h1>
             <p className="text-gray-400 text-lg">
-              {isPro ? 'All your personalized roasts in one place' : 'Your last 3 free template roasts (Upgrade to Pro for unlimited history)'}
+              {isPro ? 'All your saved entries in one place' : 'Your last 3 free template entries (Upgrade to Pro for unlimited history)'}
             </p>
           </motion.div>
 
@@ -126,7 +125,7 @@ export default function HistoryPage() {
             </motion.div>
           )}
 
-          {roasts.length === 0 ? (
+          {entries.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -134,20 +133,20 @@ export default function HistoryPage() {
             >
               <div className="text-6xl mb-4">😢</div>
               <h2 className="text-2xl font-bold text-white mb-4">
-                No roasts yet!
+                No entries yet!
               </h2>
               <p className="text-gray-400 mb-8">
-                Create your first savage breakup song to see it here
+                Create your first entry to see it here
               </p>
               <AuthAwareCTA className="bg-gradient-to-r from-exroast-pink to-exroast-gold text-white font-black px-8 py-4 rounded-full text-lg hover:scale-105 transition-transform">
-                Create Your First Roast 🔥
+                Create Your First Entry ✨
               </AuthAwareCTA>
             </motion.div>
           ) : (
             <div className="grid gap-6">
-              {roasts.map((roast, index) => (
+              {entries.map((entry, index) => (
                 <motion.div
-                  key={roast.id}
+                  key={entry.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -157,25 +156,25 @@ export default function HistoryPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-black text-white">
-                          {roast.title}
+                          {entry.title}
                         </h3>
-                        {roast.isTemplate && (
+                        {entry.isTemplate && (
                           <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-full">
                             Template
                           </span>
                         )}
                       </div>
                       <p className="text-gray-400 text-sm mb-4">
-                        {roast.mode.charAt(0).toUpperCase() + roast.mode.slice(1)} • {new Date(roast.createdAt).toLocaleDateString()}
+                        {entry.mode.charAt(0).toUpperCase() + entry.mode.slice(1)} • {new Date(entry.createdAt).toLocaleDateString()}
                       </p>
                       
                       <div className="flex gap-3">
-                        <Link href={`/preview?songId=${roast.id}`}>
+                        <Link href={`/preview?songId=${entry.id}`}>
                           <button className="flex items-center gap-2 bg-exroast-pink hover:bg-exroast-pink/80 text-white font-bold px-4 py-2 rounded-lg transition-colors">
                             <FaPlay /> Play
                           </button>
                         </Link>
-                        <Link href={`/share/${roast.id}`}>
+                        <Link href={`/share/${entry.id}`}>
                           <button className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg transition-colors">
                             <FaShare /> Share
                           </button>
@@ -184,7 +183,7 @@ export default function HistoryPage() {
                     </div>
                     
                     <div className="flex-shrink-0">
-                      {roast.isTemplate ? (
+                      {entry.isTemplate ? (
                         <div className="text-4xl">🎵</div>
                       ) : (
                         <div className="text-4xl">⭐</div>

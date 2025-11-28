@@ -230,14 +230,14 @@ export function Header({ userProp }: { userProp?: any }) {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 group">
             <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              className="text-exroast-pink"
-              style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+              whileHover={{ scale: 1.05, rotate: 2 }}
+              className="text-exroast-primary"
+              style={{ filter: 'brightness(1.05) contrast(1.05)' }}
             >
-              <span className="text-3xl">🔥</span>
+              <span className="text-3xl">⚡️</span>
             </motion.div>
-            <span className="text-2xl font-black bg-gradient-to-r from-[#ff006e] to-[#ffd23f] bg-clip-text text-transparent">
-              ExRoast.fm
+            <span className="text-2xl font-black bg-clip-text text-white">
+              DailyMotiv
             </span>
           </Link>
           
@@ -261,9 +261,9 @@ export function Header({ userProp }: { userProp?: any }) {
             )}
 
             {!user && pathname !== '/app' && (
-              <Link href={"/template"}>
-                <button className="bg-[#ff4500] hover:bg-[#ff4500]/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-[#ffd23f] shadow-lg hover:shadow-[#ff006e]/70 hover:shadow-2xl">
-                  <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Roast My Ex 🔥</span>
+              <Link href={"/daily"}>
+                <button className="bg-gradient-to-r from-exroast-primary to-exroast-primary/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-exroast-accent shadow-lg">
+                  <span style={{ filter: 'brightness(1.05) contrast(1.05)' }}>Daily Vent 💪</span>
                 </button>
               </Link>
             )}
@@ -287,7 +287,7 @@ export function Header({ userProp }: { userProp?: any }) {
                     Buy Credits
                   </button>
                   <button
-                    onClick={() => router.push('/app?tab=roast')}
+                    onClick={() => router.push('/app?tab=history')}
                     className="inline-flex items-center bg-white/5 px-3 py-2 rounded-full font-bold text-sm"
                   >
                     History
@@ -365,9 +365,9 @@ export function Header({ userProp }: { userProp?: any }) {
                 FAQ
               </Link>
               {!user && pathname !== '/app' && (
-                <Link href="/template" onClick={() => setMobileMenuOpen(false)}>
-                  <button className="w-full bg-[#ff4500] hover:bg-[#ff4500]/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-[#ffd23f] shadow-lg hover:shadow-[#ff006e]/70 hover:shadow-2xl">
-                    <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Roast My Ex 🔥</span>
+                <Link href="/daily" onClick={() => setMobileMenuOpen(false)}>
+                  <button className="w-full bg-gradient-to-r from-exroast-primary to-exroast-primary/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-exroast-accent shadow-lg">
+                    <span style={{ filter: 'brightness(1.05) contrast(1.05)' }}>Daily Vent 💪</span>
                   </button>
                 </Link>
               )}
@@ -386,9 +386,9 @@ export function Header({ userProp }: { userProp?: any }) {
                         setMobileMenuOpen(false);
                         setShowSettingsMenu(true);
                       }}
-                      className="w-full btn-primary focus:outline-none focus:ring-4 focus:ring-exroast-gold/60"
+                      className="w-full btn-primary focus:outline-none focus:ring-4 focus:ring-exroast-accent/60"
                     >
-                      My Roasts
+                      My History
                     </button>
                     <button
                       onClick={async () => {

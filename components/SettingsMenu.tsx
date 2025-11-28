@@ -257,8 +257,8 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
           <div className="flex flex-col">
             <div className="flex items-center justify-between mb-4 px-1">
               <div className="text-sm text-white/60 font-semibold flex items-center gap-2">
-                <span className="text-xl">🎤</span>
-                <span>My Roasts</span>
+                <span className="text-xl">📚</span>
+                <span>My History</span>
               </div>
               <div className="text-xs text-white/50 bg-white/5 px-3 py-1 rounded-full">Recent</div>
             </div>
@@ -274,8 +274,8 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
               ) : roasts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-center">
                   <div className="text-4xl mb-2 opacity-30">🎵</div>
-                  <div className="text-white/60">No roasts yet</div>
-                  <div className="text-xs text-white/40 mt-1">Create your first roast to see it here</div>
+                  <div className="text-white/60">No vents yet</div>
+                  <div className="text-xs text-white/40 mt-1">Create your first vent to see it here</div>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -283,7 +283,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                     <button
                       type="button"
                       key={r.id}
-                      onClick={() => { onClose?.(); router.push('/app?tab=roast'); }}
+                      onClick={() => { onClose?.(); router.push('/app?tab=history'); }}
                       className="group w-full text-left px-4 py-3 rounded-lg bg-white/[0.02] hover:bg-gradient-to-r hover:from-exroast-pink/10 hover:to-purple-500/10 border border-white/5 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -292,7 +292,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-bold text-white truncate group-hover:text-exroast-pink transition-colors">
-                            {r.title || 'Untitled Roast'}
+                            {r.title || 'Untitled Vent'}
                           </div>
                           <div className="text-xs text-white/50">{new Date(r.createdAt).toLocaleDateString()}</div>
                         </div>

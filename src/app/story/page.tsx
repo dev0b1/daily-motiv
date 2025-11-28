@@ -19,7 +19,12 @@ export default function StoryPage() {
     (async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setCurrentUser(session?.user || null);
+        if (session?.user) {
+          setCurrentUser(session.user);
+        } else {
+          // Redirect to the app entry if unauthenticated — consolidate routes
+          router.replace('/app');
+        }
       } catch (e) {
         // ignore
       }
@@ -43,11 +48,11 @@ export default function StoryPage() {
           >
             <div className="text-center space-y-4">
               <h1 className="text-5xl md:text-6xl font-black text-gradient">
-                Spill the Tea 🔥
-              </h1>
-              <p className="text-2xl text-white font-bold">
-                What did they do? We need ALL the details 🔥
-              </p>
+                  Tell Your Story ✨
+                </h1>
+                <p className="text-2xl text-white font-bold">
+                  Share what happened — we'll turn it into a short motivation track.
+                </p>
             </div>
 
             <RoastCreator />

@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/server/db';
-import { songs } from '@/src/db/schema';
 import { getAllTemplates, saveRoast } from '@/lib/db-service';
 import { matchTemplate } from '@/lib/template-matcher';
 import { LYRICS_DATA } from '@/lib/lyrics-data';
@@ -36,40 +34,29 @@ export async function POST(request: NextRequest) {
     const templateId = selectedTemplate.filename.replace('.mp3', '');
     const templateLyrics = LYRICS_DATA[templateId] || '';
 
-    const [song] = await db.insert(songs).values({
-      title: `${style.charAt(0).toUpperCase() + style.slice(1)} Roast`,
-      lyrics: templateLyrics,
-      previewUrl: selectedTemplate.storageUrl,
-      fullUrl: '',
-      style,
-      story: story.substring(0, 500),
-      genre: musicStyle || null,
-      // Template preview length — show 20s demo
-      duration: 20,
-      isPurchased: false,
-      isTemplate: true
-    }).returning();
-
+    // Persist a lightweight history entry for the preview (so guests can see recentHistory)
+    const title = `${style.charAt(0).toUpperCase() + style.slice(1)} Track`;
+    let savedId: string | null = null;
     try {
-      await saveRoast({
+      savedId = await saveRoast({
         story: story.substring(0, 500),
         mode: style,
-        title: song.title,
+        title,
         lyrics: templateLyrics,
         audioUrl: selectedTemplate.storageUrl,
         isTemplate: true
       });
     } catch (saveError) {
-      console.log('Failed to save roast (non-critical):', saveError);
+      console.log('Failed to save history (non-critical):', saveError);
     }
 
     return NextResponse.json({
       success: true,
-      songId: song.id,
-      title: song.title,
+      songId: savedId || null,
+      title,
       // Return the mp3 preview URL directly for free users (will be replaced with video later)
       previewUrl: selectedTemplate.storageUrl,
-      message: 'Template preview generated! Upgrade to Pro for personalized roasts.',
+      message: 'Template preview generated! Upgrade to Pro for personalized tracks.',
       isTemplate: true,
       matchScore: match?.score || 0
     });

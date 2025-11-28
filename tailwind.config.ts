@@ -10,9 +10,10 @@ const config: Config = {
     extend: {
       colors: {
         exroast: {
-          black: "#0f0f0f",
-          pink: "#ff006e",
-          gold: "#ffd23f",
+          bg: "#0b1020",
+          primary: "#7c3aed",
+          accent: "#ffd23f",
+          warm: "#ff6b6b",
         },
       },
       fontFamily: {
